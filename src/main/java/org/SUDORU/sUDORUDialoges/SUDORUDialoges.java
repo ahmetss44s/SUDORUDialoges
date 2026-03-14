@@ -21,9 +21,7 @@ import java.util.Objects;
 public final class SUDORUDialoges extends JavaPlugin {
 
     private TraderManager traderManager;
-    @SuppressWarnings("unused")
     private TraderMenuGUI traderMenuGUI;
-    @SuppressWarnings("unused")
     private ConfigMenuGUI configMenuGUI;
 
     @Override
@@ -125,6 +123,6 @@ public final class SUDORUDialoges extends JavaPlugin {
     // ─── Геттеры ─────────────────────────────────────────────────────
 
     public TraderManager getTraderManager() { return traderManager; }
-    public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
-    public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
+    @SuppressWarnings("unused") public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
+    @SuppressWarnings("unused") public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
 }

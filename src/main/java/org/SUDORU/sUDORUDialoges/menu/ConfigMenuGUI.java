@@ -32,6 +32,7 @@ public class ConfigMenuGUI {
     private final SUDORUDialoges plugin;
     private final Map<UUID, ConfigState> states = new HashMap<>();
 
+    @SuppressWarnings("unused")
     public ConfigMenuGUI(SUDORUDialoges plugin) {
         this.plugin = plugin;
     }

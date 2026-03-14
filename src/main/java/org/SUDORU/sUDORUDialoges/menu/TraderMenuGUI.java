@@ -31,6 +31,7 @@ public class TraderMenuGUI {
     // null = главное меню
     private final Map<UUID, EditorState> editorStates = new HashMap<>();
 
+    @SuppressWarnings("unused")
     public TraderMenuGUI(SUDORUDialoges plugin) {
         this.plugin = plugin;
     }
