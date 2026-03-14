@@ -1,5 +1,5 @@
 name: SUDORUDialoges
-version: '1.0-SNAPSHOT'
+version: '1.0.1'
 main: org.SUDORU.sUDORUDialoges.SUDORUDialoges
 api-version: '1.21'
 description: "Диалоговая торговая система SUDORU"
