@@ -17,6 +17,7 @@ import java.util.*;
  * Главное меню управления торговцами (/tradermenu).
  * Позволяет просматривать, создавать, редактировать торговцев.
  */
+@SuppressWarnings("unused")
 public class TraderMenuGUI {
 
     private static final int SIZE = 54;
@@ -36,7 +37,7 @@ public class TraderMenuGUI {
 
     // ─── Открытие главного меню ──────────────────────────────────────
 
-    public void openMain(Player player) {
+    @SuppressWarnings("unused") public void openMain(Player player) {
         editorStates.remove(player.getUniqueId());
         Component title = ColorUtil.parse(MAIN_TITLE);
         Inventory inv = Bukkit.createInventory(null, SIZE, title);
@@ -116,7 +117,7 @@ public class TraderMenuGUI {
 
     // ─── Меню редактирования одного торговца ─────────────────────────
 
-    public void openEditor(Player player, String traderId) {
+    @SuppressWarnings("unused") public void openEditor(Player player, String traderId) {
         TraderShop shop = plugin.getTraderManager().getShop(traderId);
         if (shop == null) { player.sendMessage(ColorUtil.parse("§c✗ Торговец не найден.")); return; }
 
@@ -185,7 +186,7 @@ public class TraderMenuGUI {
 
     // ─── Меню настроек валюты ─────────────────────────────────────────
 
-    public void openCurrencySettings(Player player) {
+    @SuppressWarnings("unused") public void openCurrencySettings(Player player) {
         editorStates.put(player.getUniqueId(), new EditorState(null, EditorMode.CURRENCY));
         Component title = ColorUtil.parse("§0§r§0§r§0§b💎 §bНастройки Валюты");
         Inventory inv = Bukkit.createInventory(null, SIZE, title);
@@ -215,7 +216,7 @@ public class TraderMenuGUI {
 
     // ─── Меню создания нового торговца ───────────────────────────────
 
-    public void openCreateWizard(Player player) {
+    @SuppressWarnings("unused") public void openCreateWizard(Player player) {
         editorStates.put(player.getUniqueId(), new EditorState(null, EditorMode.CREATE));
         Component title = ColorUtil.parse("§0§r§0§r§0§a✚ §aСоздать Торговца");
         Inventory inv = Bukkit.createInventory(null, SIZE, title);
@@ -269,7 +270,7 @@ public class TraderMenuGUI {
     }
 
     // Проверка по заголовку
-    public static boolean isManagerMenu(Component title) {
+    @SuppressWarnings("unused") public static boolean isManagerMenu(Component title) {
         // Сравниваем через строковое представление
         String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
                 .plainText().serialize(title);
@@ -278,25 +279,25 @@ public class TraderMenuGUI {
         return plain.equals(check);
     }
 
-    public static boolean isEditorMenu(Component title) {
+    @SuppressWarnings("unused") public static boolean isEditorMenu(Component title) {
         return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
                 .plainText().serialize(title).contains("Редактор:");
     }
 
-    public static boolean isCurrencyMenu(Component title) {
+    @SuppressWarnings("unused") public static boolean isCurrencyMenu(Component title) {
         return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
                 .plainText().serialize(title).contains("Настройки Валюты");
     }
 
-    public static boolean isCreateMenu(Component title) {
+    @SuppressWarnings("unused") public static boolean isCreateMenu(Component title) {
         return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
                 .plainText().serialize(title).contains("Создать Торговца");
     }
 
     // Геттеры состояния
-    public EditorState getState(UUID uuid) { return editorStates.get(uuid); }
-    public void removeState(UUID uuid) { editorStates.remove(uuid); }
-    public void setState(UUID uuid, EditorState state) { editorStates.put(uuid, state); }
+    @SuppressWarnings("unused") public EditorState getState(UUID uuid) { return editorStates.get(uuid); }
+    @SuppressWarnings("unused") public void removeState(UUID uuid) { editorStates.remove(uuid); }
+    @SuppressWarnings("unused") public void setState(UUID uuid, EditorState state) { editorStates.put(uuid, state); }
 
     // ─── Состояние редактора ──────────────────────────────────────────
 
@@ -305,7 +306,8 @@ public class TraderMenuGUI {
     public static class EditorState {
         public final String traderId;
         public final EditorMode mode;
-        public String pendingField; // какое поле ждёт ввода
+        @SuppressWarnings("unused")
+        public String pendingField;
 
         public EditorState(String traderId, EditorMode mode) {
             this.traderId = traderId;

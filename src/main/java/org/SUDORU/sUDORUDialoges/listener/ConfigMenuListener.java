@@ -3,7 +3,6 @@ package org.SUDORU.sUDORUDialoges.listener;
 import net.kyori.adventure.text.Component;
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
 import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
-import org.SUDORU.sUDORUDialoges.shop.ShopItem;
 import org.SUDORU.sUDORUDialoges.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -99,7 +98,7 @@ public class ConfigMenuListener implements Listener {
             // currency.type — переключатель ЛКМ/ПКМ
             if (slot == 19) {
                 String newVal = event.getClick() == ClickType.RIGHT ? "VAULT" : "ITEM";
-                saveAndReload("currency.type", newVal, null);
+                saveAndReload("currency.type", newVal);
                 player.sendMessage(ColorUtil.parse("&#55FF55✔ §acurrency.type §7→ §f" + newVal));
                 gui.openCurrency(player);
                 return;
@@ -341,7 +340,6 @@ public class ConfigMenuListener implements Listener {
             if (slot == 30) {
                 requestInput(player, "item.potion-type", traderId, "item-field", itemIdx,
                         "&#FFAA00➤ §eТип зелья §7(пример: STRONG_HEALING, INVISIBILITY):");
-                return;
             }
         }
     }
@@ -385,54 +383,46 @@ public class ConfigMenuListener implements Listener {
                 return;
             }
 
-            // ── Поля валюты ──
-            if (state.pendingType == null || state.pendingType.isEmpty()) {
-                // Прямой путь к конфигу (currency.*)
-                saveAndReload(field, input, null);
-                player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
-                gui.openCurrency(player);
-                return;
-            }
-
-            // ── Поля торговца ──
-            if ("trader-field".equals(state.pendingType)) {
-                saveTraderField(traderId, field, input);
-                reloadAndReopenTrader(player, traderId);
-                player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
-                return;
-            }
-
-            // ── Новый предмет ──
-            if ("item-new".equals(state.pendingType)) {
-                try { Material.valueOf(input.toUpperCase()); }
-                catch (IllegalArgumentException e) {
-                    player.sendMessage(ColorUtil.parse("§c✗ Неизвестный материал: §f" + input));
-                    gui.openItems(player, traderId, 0);
-                    return;
+            // ── Диспетчеризация по типу ──
+            String pendingType = (state.pendingType == null) ? "" : state.pendingType;
+            switch (pendingType) {
+                case "" -> {
+                    // Прямой путь к конфигу (currency.*)
+                    saveAndReload(field, input);
+                    player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
+                    gui.openCurrency(player);
                 }
-                addItem(player, traderId, input.toUpperCase());
-                return;
-            }
-
-            // ── Поля предмета ──
-            if ("item-field".equals(state.pendingType)) {
-                if ("item.lore".equals(field)) {
-                    // Разбиваем по |
-                    List<String> loreLines = List.of(input.split("\\|"));
-                    saveItemLore(traderId, idx, loreLines);
-                } else {
-                    String key = field.replace("item.", "");
-                    saveItemField(traderId, idx, key, input);
+                case "trader-field" -> {
+                    saveTraderField(traderId, field, input);
+                    reloadAndReopenTrader(player, traderId);
+                    player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
                 }
-                reloadAndReopenItem(player, traderId, idx);
-                player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
+                case "item-new" -> {
+                    try { Material.valueOf(input.toUpperCase()); }
+                    catch (IllegalArgumentException e) {
+                        player.sendMessage(ColorUtil.parse("§c✗ Неизвестный материал: §f" + input));
+                        gui.openItems(player, traderId, 0);
+                        return;
+                    }
+                    addItem(player, traderId, input.toUpperCase());
+                }
+                case "item-field" -> {
+                    if ("item.lore".equals(field)) {
+                        List<String> loreLines = List.of(input.split("\\|"));
+                        saveItemLore(traderId, idx, loreLines);
+                    } else {
+                        saveItemField(traderId, idx, field.replace("item.", ""), input);
+                    }
+                    reloadAndReopenItem(player, traderId, idx);
+                    player.sendMessage(ColorUtil.parse("&#55FF55✔ §a" + field + " §7→ §f" + input));
+                }
             }
         });
     }
 
     // ─── Утилиты сохранения ───────────────────────────────────────────
 
-    private void saveAndReload(String path, String value, Player player) {
+    private void saveAndReload(String path, String value) {
         plugin.getConfig().set(path, value);
         plugin.saveConfig();
         plugin.reloadConfig();
@@ -470,9 +460,9 @@ public class ConfigMenuListener implements Listener {
             default -> entry.put(field, value);
         }
 
-        rawList = new java.util.ArrayList<>(rawList);
-        ((java.util.List<Map<?, ?>>) rawList).set(itemIdx, (Map<?, ?>) (Map<?, ?>) entry);
-        cfg.set("traders." + traderId + ".items", rawList);
+        java.util.List<Map<?, ?>> mutableList = new java.util.ArrayList<>(rawList);
+        mutableList.set(itemIdx, entry);
+        cfg.set("traders." + traderId + ".items", mutableList);
         plugin.saveConfig();
     }
 

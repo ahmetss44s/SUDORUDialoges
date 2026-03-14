@@ -1,10 +1,8 @@
 package org.SUDORU.sUDORUDialoges.listener;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
 import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
-import org.SUDORU.sUDORUDialoges.shop.TraderManager;
 import org.SUDORU.sUDORUDialoges.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;

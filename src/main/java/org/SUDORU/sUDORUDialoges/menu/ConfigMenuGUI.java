@@ -25,6 +25,7 @@ import java.util.*;
  *  - Страница предметов торговца (список + редактирование)
  *  - Страница редактирования одного предмета
  */
+@SuppressWarnings("unused")
 public class ConfigMenuGUI {
 
     // ── Заголовки для определения меню по title ──────────────────────
@@ -44,7 +45,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  ГЛАВНАЯ СТРАНИЦА — обзор всего конфига
     // ════════════════════════════════════════════════════════════
-    public void openMain(Player player) {
+    @SuppressWarnings("unused") public void openMain(Player player) {
         states.put(player.getUniqueId(), new ConfigState(ConfigPage.MAIN, null, -1));
         Inventory inv = Bukkit.createInventory(null, 54, ColorUtil.parse(T_MAIN));
 
@@ -133,7 +134,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  СТРАНИЦА ВАЛЮТЫ
     // ════════════════════════════════════════════════════════════
-    public void openCurrency(Player player) {
+    @SuppressWarnings("unused") public void openCurrency(Player player) {
         states.put(player.getUniqueId(), new ConfigState(ConfigPage.CURRENCY, null, -1));
         String currMat  = plugin.getConfig().getString("currency.item-material", "EMERALD");
         String currName = plugin.getConfig().getString("currency.item-name", "Изумруд");
@@ -141,7 +142,7 @@ public class ConfigMenuGUI {
 
         Inventory inv = Bukkit.createInventory(null, 54, ColorUtil.parse(T_CURRENCY));
         fill(inv, Material.CYAN_STAINED_GLASS_PANE);
-        fill2(inv, Material.BLACK_STAINED_GLASS_PANE, new int[]{
+        fill2(inv, new int[]{
                 9,10,11,12,13,14,15,16,17,
                 18,26,27,35,
                 36,37,38,39,40,41,42,43,44
@@ -212,7 +213,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  СТРАНИЦА НАСТРОЕК ТОРГОВЦА
     // ════════════════════════════════════════════════════════════
-    public void openTrader(Player player, String traderId) {
+    @SuppressWarnings("unused") public void openTrader(Player player, String traderId) {
         TraderShop shop = plugin.getTraderManager().getShop(traderId);
         if (shop == null) { player.sendMessage(ColorUtil.parse("§c✗ Торговец не найден.")); return; }
 
@@ -352,7 +353,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  СТРАНИЦА ПРЕДМЕТОВ ТОРГОВЦА
     // ════════════════════════════════════════════════════════════
-    public void openItems(Player player, String traderId, int page) {
+    @SuppressWarnings("unused") public void openItems(Player player, String traderId, int page) {
         TraderShop shop = plugin.getTraderManager().getShop(traderId);
         if (shop == null) return;
 
@@ -427,7 +428,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  СТРАНИЦА РЕДАКТИРОВАНИЯ ОДНОГО ПРЕДМЕТА
     // ════════════════════════════════════════════════════════════
-    public void openItemEdit(Player player, String traderId, int itemIdx) {
+    @SuppressWarnings("unused") public void openItemEdit(Player player, String traderId, int itemIdx) {
         TraderShop shop = plugin.getTraderManager().getShop(traderId);
         if (shop == null) return;
         var items = shop.getConfig().getItems();
@@ -531,14 +532,14 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  ОПРЕДЕЛЕНИЕ МЕНЮ ПО ЗАГОЛОВКУ
     // ════════════════════════════════════════════════════════════
-    public static boolean isMain(Component c)     { return plain(c).equals(plain(ColorUtil.parse(T_MAIN))); }
-    public static boolean isCurrency(Component c) { return plain(c).equals(plain(ColorUtil.parse(T_CURRENCY))); }
-    public static boolean isTrader(Component c)   { return plain(c).startsWith(plain(ColorUtil.parse(T_TRADER))); }
-    public static boolean isItems(Component c)    { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEMS))); }
-    public static boolean isItemEdit(Component c) { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEM_EDIT))); }
+    @SuppressWarnings("unused") public static boolean isMain(Component c)     { return plain(c).equals(plain(ColorUtil.parse(T_MAIN))); }
+    @SuppressWarnings("unused") public static boolean isCurrency(Component c) { return plain(c).equals(plain(ColorUtil.parse(T_CURRENCY))); }
+    @SuppressWarnings("unused") public static boolean isTrader(Component c)   { return plain(c).startsWith(plain(ColorUtil.parse(T_TRADER))); }
+    @SuppressWarnings("unused") public static boolean isItems(Component c)    { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEMS))); }
+    @SuppressWarnings("unused") public static boolean isItemEdit(Component c) { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEM_EDIT))); }
 
     /** Извлекает traderId из заголовка «☰ Предметы: <id>» */
-    public static String traderIdFromTitle(Component c, String prefix) {
+    @SuppressWarnings("unused") public static String traderIdFromTitle(Component c, String prefix) {
         String p = plain(c);
         String pref = plain(ColorUtil.parse(prefix));
         if (p.startsWith(pref)) return p.substring(pref.length()).trim().split(" ")[0];
@@ -557,8 +558,8 @@ public class ConfigMenuGUI {
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, bg);
     }
 
-    private void fill2(Inventory inv, Material mat, int[] slots) {
-        ItemStack bg = item(mat, "§0 ");
+    private void fill2(Inventory inv, int[] slots) {
+        ItemStack bg = item(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
         for (int s : slots) inv.setItem(s, bg);
     }
 
@@ -608,9 +609,11 @@ public class ConfigMenuGUI {
     public static class ConfigState {
         public final ConfigPage page;
         public final String traderId;
-        public final int index;      // номер предмета или страницы
-        public String pendingField;  // поле, ожидающее ввода в чат
-        public String pendingType;   // "trader" / "currency" / "item"
+        public final int index;
+        @SuppressWarnings("unused")
+        public String pendingField;
+        @SuppressWarnings("unused")
+        public String pendingType;
 
         public ConfigState(ConfigPage page, String traderId, int index) {
             this.page = page;
@@ -619,8 +622,7 @@ public class ConfigMenuGUI {
         }
     }
 
-    public ConfigState getState(UUID uuid) { return states.get(uuid); }
-    public void putState(UUID uuid, ConfigState s) { states.put(uuid, s); }
-    public void removeState(UUID uuid) { states.remove(uuid); }
+    @SuppressWarnings("unused") public ConfigState getState(UUID uuid) { return states.get(uuid); }
+    @SuppressWarnings("unused") public void putState(UUID uuid, ConfigState s) { states.put(uuid, s); }
+    @SuppressWarnings("unused") public void removeState(UUID uuid) { states.remove(uuid); }
 }
-

@@ -81,4 +81,3 @@ public class ConfigMenuCommand implements CommandExecutor, TabCompleter {
         return result;
     }
 }
-
