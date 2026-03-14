@@ -1,8 +1,9 @@
 package org.SUDORU.sUDORUDialoges.shop;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
+import org.SUDORU.sUDORUDialoges.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -16,26 +17,23 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 
 /**
- * Одна «живая» инстанция торговца:
- * хранит текущий ассортимент, открывает GUI, обновляет таймер.
+ * Одна «живая» инстанция торговца.
+ * Поддерживает HEX цвета через ColorUtil.
  */
 public class TraderShop {
 
     private static final int MENU_SIZE = 54;
 
-    // Товары: 19, 21, 23, 25, 27  Кнопки покупки: 28, 30, 32, 34, 36
+    // Слоты товаров (ряд 3) и кнопок покупки (ряд 4)
     private static final int[] PRODUCT_SLOTS = {19, 21, 23, 25, 27};
     private static final int[] BUTTON_SLOTS  = {28, 30, 32, 34, 36};
 
     private final SUDORUDialoges plugin;
     private final TraderConfig config;
 
-    /** Текущие активные товары: slotIndex → данные слота */
+    /** slotIndex → данные слота */
     private final Map<Integer, SlotData> activeSlots = new LinkedHashMap<>();
     private BukkitTask refreshTask;
-
-    // Сериализатор §-кодов в Adventure Component
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     public TraderShop(SUDORUDialoges plugin, TraderConfig config) {
         this.plugin = plugin;
@@ -46,7 +44,6 @@ public class TraderShop {
 
     // ─── Генерация ассортимента ──────────────────────────────────────
 
-    /** Выбирает от minItems до maxItems предметов по шансам (допускается дублирование). */
     public void rollAssortment() {
         activeSlots.clear();
         List<ShopItem> pool = config.getItems();
@@ -56,7 +53,6 @@ public class TraderShop {
                 + (int)(Math.random() * (config.getMaxItems() - config.getMinItems() + 1));
         count = Math.min(count, PRODUCT_SLOTS.length);
 
-        // Взвешенная случайная выборка (с возвратом — дубли разрешены)
         double totalChance = pool.stream().mapToDouble(ShopItem::getChance).sum();
         for (int i = 0; i < count; i++) {
             ShopItem chosen = weightedRandom(pool, totalChance);
@@ -84,11 +80,8 @@ public class TraderShop {
         if (sec <= 0) return;
         refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             rollAssortment();
-            // обновить открытые меню
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (isViewingThisShop(p)) {
-                    openFor(p);
-                }
+                if (isViewingThisShop(p)) openFor(p);
             }
         }, sec * 20L, sec * 20L);
     }
@@ -100,37 +93,61 @@ public class TraderShop {
     // ─── Открытие GUI ────────────────────────────────────────────────
 
     public void openFor(Player player) {
-        Component title = toLegacyComponent(config.getDisplayName());
+        Component title = ColorUtil.parse(config.getDisplayName());
         Inventory inv = Bukkit.createInventory(null, MENU_SIZE, title);
-
         fillDecoration(inv);
         fillHeader(inv);
         fillItems(inv);
         fillFooter(inv);
-
         player.openInventory(inv);
     }
 
-    // Верхняя шапка: иконка торговца + описание
+    private void fillDecoration(Inventory inv) {
+        // Тёмный фон
+        ItemStack darkBg  = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
+        ItemStack grayBg  = buildItem(Material.GRAY_STAINED_GLASS_PANE,  "§8 ");
+        for (int i = 0; i < MENU_SIZE; i++) inv.setItem(i, darkBg);
+        // Строки 3-4 (18-35) — светлее
+        for (int i = 18; i <= 44; i++) inv.setItem(i, grayBg);
+    }
+
     private void fillHeader(Inventory inv) {
-        // Строка 1 (0-8): рамка + иконка + описание
+        // Иконка торговца в слоте 4
         Material iconMat = parseMaterial(config.getIconMaterial());
-        ItemStack icon = buildItem(iconMat, config.getDisplayName(),
+        ItemStack icon = buildItem(iconMat,
+                config.getDisplayName(),
                 splitDescription(config.getDescription()));
         inv.setItem(4, icon);
 
-        // Разделитель
-        ItemStack divider = buildItem(Material.BLACK_STAINED_GLASS_PANE, " ", Collections.emptyList());
-        for (int s : new int[]{0,1,2,3,5,6,7,8, 9,10,11,12,13,14,15,16,17}) {
-            inv.setItem(s, divider);
-        }
+        // Боковые украшения в шапке
+        ItemStack purpleDec = buildItem(Material.PURPLE_STAINED_GLASS_PANE, "§5 ");
+        ItemStack cyanDec   = buildItem(Material.CYAN_STAINED_GLASS_PANE,   "§3 ");
+        inv.setItem(0,  purpleDec); inv.setItem(8,  purpleDec);
+        inv.setItem(1,  cyanDec);   inv.setItem(7,  cyanDec);
+        inv.setItem(2,  purpleDec); inv.setItem(6,  purpleDec);
+        inv.setItem(3,  cyanDec);   inv.setItem(5,  cyanDec);
+
+        // Разделитель (строка 2)
+        ItemStack divider = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
+        for (int s = 9; s <= 17; s++) inv.setItem(s, divider);
+
+        // Украшения между товарами
+        ItemStack spacer = buildItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "§7 ");
+        inv.setItem(18, spacer); inv.setItem(20, spacer); inv.setItem(22, spacer);
+        inv.setItem(24, spacer); inv.setItem(26, spacer);
+        inv.setItem(29, spacer); inv.setItem(31, spacer); inv.setItem(33, spacer);
+        inv.setItem(35, spacer); inv.setItem(37, spacer); inv.setItem(39, spacer);
+        inv.setItem(41, spacer); inv.setItem(43, spacer);
     }
 
     private void fillItems(Inventory inv) {
-        ItemStack barrier = buildItem(Material.BARRIER, "§c✗ Продано",
-                List.of("§7Этот товар уже куплен."));
-        ItemStack empty   = buildItem(Material.GRAY_STAINED_GLASS_PANE, "§8— Пусто —",
-                Collections.emptyList());
+        // Куплено — показываем барьер с красивым описанием
+        ItemStack barrier = buildItem(Material.BARRIER, "&#FF5555✗ §cПродано",
+                List.of("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                        "&#AAAAAA Этот товар уже куплен.",
+                        "&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+        ItemStack darkPane = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
+        ItemStack empty    = buildItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "&#888888— Пусто —");
 
         for (int i = 0; i < PRODUCT_SLOTS.length; i++) {
             int pSlot = PRODUCT_SLOTS[i];
@@ -139,11 +156,10 @@ public class TraderShop {
 
             if (data == null) {
                 inv.setItem(pSlot, empty);
-                inv.setItem(bSlot, empty);
+                inv.setItem(bSlot, darkPane);
             } else if (data.isBought()) {
                 inv.setItem(pSlot, barrier);
-                inv.setItem(bSlot, buildItem(Material.GRAY_STAINED_GLASS_PANE, " ",
-                        Collections.emptyList()));
+                inv.setItem(bSlot, darkPane);
             } else {
                 inv.setItem(pSlot, buildProductItem(data));
                 inv.setItem(bSlot, buildBuyButton(data));
@@ -152,28 +168,30 @@ public class TraderShop {
     }
 
     private void fillFooter(Inventory inv) {
-        // Строка 6 (45-53): информация о следующем обновлении
-        ItemStack glass = buildItem(Material.BLACK_STAINED_GLASS_PANE, " ", Collections.emptyList());
-        for (int s = 45; s < 54; s++) inv.setItem(s, glass);
+        // Строка 6 (45-53)
+        ItemStack darkPane = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
+        for (int s = 45; s < 54; s++) inv.setItem(s, darkPane);
 
         long sec = config.getRefreshSeconds();
-        String refreshText = sec > 0 ? formatTime(sec) : "§7Никогда";
+        String refreshText = sec > 0 ? formatTime(sec) : "&#AAAAAA Никогда";
         ItemStack info = buildItem(Material.CLOCK,
-                "§e⏱ Следующее обновление",
-                List.of("§7Ассортимент обновится через:", "§f" + refreshText,
-                        "", "§8• Всего слотов: §f" + activeSlots.size()));
+                "&#FFFF55⏱ §eОбновление",
+                List.of("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                        "&#AAAAAA Следующее обновление: §f" + refreshText,
+                        "&#AAAAAA Предметов сегодня: §f" + activeSlots.size(),
+                        "&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         inv.setItem(49, info);
 
-        // Кнопка закрыть
         ItemStack close = buildItem(Material.RED_STAINED_GLASS_PANE,
-                "§c✖ Закрыть", List.of("§7Закрыть меню торговца."));
+                "&#FF5555✖ §cЗакрыть",
+                List.of("&#AAAAAA Закрыть меню торговца."));
         inv.setItem(53, close);
-    }
 
-    private void fillDecoration(Inventory inv) {
-        ItemStack filler = buildItem(Material.GRAY_STAINED_GLASS_PANE, " ", Collections.emptyList());
-        // Заполняем все слоты серым для начала (потом перезапишем нужные)
-        for (int s = 0; s < MENU_SIZE; s++) inv.setItem(s, filler);
+        // Украшения по краям
+        ItemStack purpleDec = buildItem(Material.PURPLE_STAINED_GLASS_PANE, "§5 ");
+        ItemStack cyanDec   = buildItem(Material.CYAN_STAINED_GLASS_PANE, "§3 ");
+        inv.setItem(45, purpleDec); inv.setItem(46, cyanDec);
+        inv.setItem(50, cyanDec);  inv.setItem(51, cyanDec); inv.setItem(52, cyanDec);
     }
 
     // ─── Построители предметов ──────────────────────────────────────
@@ -183,13 +201,13 @@ public class TraderShop {
         Material mat = si.getMaterial();
 
         List<String> lore = new ArrayList<>();
-        lore.add("§8──────────────────");
-        lore.addAll(colorizeList(si.getLore()));
-        lore.add("§8──────────────────");
-        lore.add("§7Цена: §a" + data.getPrice() + " §7" + plugin.getCurrencyName());
-        lore.add("§7Кол-во: §f" + si.getAmount());
+        lore.add("&#555555▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        for (String line : si.getLore()) lore.add(line);
+        lore.add("&#555555▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        lore.add("&#FFAA00💰 §6Цена: &#FFD700§l" + data.getPrice() + " §r§7" + plugin.getCurrencyName());
+        lore.add("&#AAAAAA Количество: §f" + si.getAmount());
         lore.add("");
-        lore.add("§eНажми на кнопку ниже, чтобы купить");
+        lore.add("&#55FF55▼ §aНажми кнопку ниже для покупки");
 
         ItemStack stack = new ItemStack(mat, si.getAmount());
 
@@ -203,38 +221,38 @@ public class TraderShop {
             }
         }
 
-        applyMeta(stack, colorize(si.getName()), lore);
+        applyMeta(stack, si.getName(), lore);
         return stack;
     }
 
     private ItemStack buildBuyButton(SlotData data) {
         return buildItem(Material.LIME_STAINED_GLASS_PANE,
-                "§a§l✔ КУПИТЬ §r§a— §f" + data.getPrice() + " " + plugin.getCurrencyName(),
-                List.of("§7Нажми, чтобы приобрести этот товар."));
+                "&#55FF55§l✔ §r&#55FF55КУПИТЬ &#FFDD00§l" + data.getPrice() + " §r&#AAAAAA" + plugin.getCurrencyName(),
+                List.of("&#AAAAAA Нажми чтобы купить этот товар."));
     }
 
-    /** Строит ItemStack используя Adventure displayName и lore через компоненты. */
-    public static ItemStack buildItem(Material mat, String legacyName, List<String> legacyLore) {
+    public static ItemStack buildItem(Material mat, String name, List<String> lore) {
         ItemStack stack = new ItemStack(mat);
-        applyMeta(stack, legacyName, legacyLore);
+        applyMeta(stack, name, lore);
         return stack;
     }
 
-    private static void applyMeta(ItemStack stack, String legacyName, List<String> legacyLore) {
+    public static ItemStack buildItem(Material mat, String name) {
+        return buildItem(mat, name, Collections.emptyList());
+    }
+
+    private static void applyMeta(ItemStack stack, String name, List<String> lore) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return;
-        meta.displayName(LEGACY.deserialize(legacyName));
-        List<Component> loreComponents = new ArrayList<>();
-        for (String line : legacyLore) {
-            loreComponents.add(LEGACY.deserialize(line));
-        }
-        meta.lore(loreComponents);
+        meta.displayName(ColorUtil.parse(name));
+        List<Component> loreComps = new ArrayList<>();
+        for (String line : lore) loreComps.add(ColorUtil.parse(line));
+        meta.lore(loreComps);
         stack.setItemMeta(meta);
     }
 
     // ─── Обработка кликов ───────────────────────────────────────────
 
-    /** Возвращает индекс слота (0-4) для кнопки покупки, или -1 */
     public int getBuySlotIndex(int rawSlot) {
         for (int i = 0; i < BUTTON_SLOTS.length; i++) {
             if (BUTTON_SLOTS[i] == rawSlot) return i;
@@ -242,25 +260,20 @@ public class TraderShop {
         return -1;
     }
 
-    public boolean isCloseSlot(int rawSlot) {
-        return rawSlot == 53;
-    }
+    public boolean isCloseSlot(int rawSlot) { return rawSlot == 53; }
 
-    /** Пытается совершить покупку. Возвращает true при успехе. */
     public boolean tryPurchase(Player player, int slotIndex) {
         SlotData data = activeSlots.get(slotIndex);
         if (data == null || data.isBought()) {
-            player.sendMessage(LEGACY.deserialize("§c✗ Этот товар уже куплен или недоступен."));
+            player.sendMessage(ColorUtil.parse("&#FF5555✗ §cЭтот товар уже куплен или недоступен."));
             return false;
         }
 
         boolean bypass = player.hasPermission("sudoru.trader.bypass");
         if (!bypass && !plugin.takeCurrency(player, data.getPrice())) {
-            player.sendMessage(LEGACY.deserialize(
-                    "§c✗ Недостаточно " + plugin.getCurrencyName() + "!"));
-            player.sendMessage(LEGACY.deserialize(
-                    "§7Требуется: §f" + data.getPrice()
-                    + " §7| У тебя: §f" + plugin.getCurrencyAmount(player)));
+            player.sendMessage(ColorUtil.parse("&#FF5555✗ §cНедостаточно §f" + plugin.getCurrencyName() + "§c!"));
+            player.sendMessage(ColorUtil.parse("&#AAAAAA Требуется: &#FFD700" + data.getPrice()
+                    + " &#AAAAAA| У тебя: &#FFD700" + plugin.getCurrencyAmount(player)));
             return false;
         }
 
@@ -268,15 +281,13 @@ public class TraderShop {
         ItemStack reward = buildProductItem(data).clone();
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(reward);
         if (!overflow.isEmpty()) {
-            for (ItemStack drop : overflow.values()) {
+            for (ItemStack drop : overflow.values())
                 player.getWorld().dropItemNaturally(player.getLocation(), drop);
-            }
-            player.sendMessage(LEGACY.deserialize(
-                    "§e⚠ Инвентарь переполнен. Часть товара упала на землю."));
+            player.sendMessage(ColorUtil.parse("&#FFAA00⚠ §eИнвентарь переполнен. Часть упала на землю."));
         }
 
         data.setBought(true);
-        player.sendMessage(LEGACY.deserialize("§a✔ Покупка успешна: §f" + colorize(si.getName())));
+        player.sendMessage(ColorUtil.parse("&#55FF55✔ §aПокупка успешна: §f" + si.getName()));
         return true;
     }
 
@@ -284,24 +295,10 @@ public class TraderShop {
 
     boolean isViewingThisShop(Player p) {
         Component openTitle = p.getOpenInventory().title();
-        Component shopTitle = toLegacyComponent(config.getDisplayName());
-        return openTitle.equals(shopTitle);
-    }
-
-    private Component toLegacyComponent(String legacyText) {
-        return LEGACY.deserialize(colorize(legacyText));
-    }
-
-    private String colorize(String s) {
-        if (s == null) return "";
-        return s.replace("&", "§");
-    }
-
-    private List<String> colorizeList(List<String> list) {
-        if (list == null) return Collections.emptyList();
-        List<String> result = new ArrayList<>();
-        for (String s : list) result.add(colorize(s));
-        return result;
+        Component shopTitle = ColorUtil.parse(config.getDisplayName());
+        String plain1 = PlainTextComponentSerializer.plainText().serialize(openTitle);
+        String plain2 = PlainTextComponentSerializer.plainText().serialize(shopTitle);
+        return plain1.equals(plain2);
     }
 
     private List<String> splitDescription(String desc) {
@@ -311,8 +308,7 @@ public class TraderShop {
 
     private String formatTime(long seconds) {
         if (seconds < 60) return seconds + "с";
-        long min = seconds / 60;
-        long sec = seconds % 60;
+        long min = seconds / 60; long sec = seconds % 60;
         if (min < 60) return min + "м " + (sec > 0 ? sec + "с" : "");
         long h = min / 60; long m = min % 60;
         return h + "ч " + (m > 0 ? m + "м" : "");

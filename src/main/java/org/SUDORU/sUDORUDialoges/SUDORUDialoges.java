@@ -2,7 +2,11 @@ package org.SUDORU.sUDORUDialoges;
 
 import org.SUDORU.sUDORUDialoges.command.ReloadCommand;
 import org.SUDORU.sUDORUDialoges.command.ShopCommand;
+import org.SUDORU.sUDORUDialoges.command.TraderMenuCommand;
+import org.SUDORU.sUDORUDialoges.listener.MenuEditorListener;
 import org.SUDORU.sUDORUDialoges.listener.ShopMenuListener;
+import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
+import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
 import org.SUDORU.sUDORUDialoges.shop.TraderManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,6 +18,7 @@ import java.util.Objects;
 public final class SUDORUDialoges extends JavaPlugin {
 
     private TraderManager traderManager;
+    private TraderMenuGUI traderMenuGUI;
 
     @Override
     public void onEnable() {
@@ -24,14 +29,24 @@ public final class SUDORUDialoges extends JavaPlugin {
         traderManager = new TraderManager(this);
         traderManager.loadAll();
 
-        // ── Регистрация команд ──
+        traderMenuGUI = new TraderMenuGUI(this);
+
+        // ── Команды ──
         ShopCommand shopCmd = new ShopCommand(this);
         Objects.requireNonNull(getCommand("trader")).setExecutor(shopCmd);
         Objects.requireNonNull(getCommand("trader")).setTabCompleter(shopCmd);
         Objects.requireNonNull(getCommand("traderreload")).setExecutor(new ReloadCommand(this));
+        Objects.requireNonNull(getCommand("tradermenu")).setExecutor(new TraderMenuCommand(this, traderMenuGUI));
 
-        // ── Регистрация слушателей ──
+        // ── Слушатели ──
         getServer().getPluginManager().registerEvents(new ShopMenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new MenuEditorListener(this, traderMenuGUI), this);
+
+        // ── PlaceholderAPI (опционально) ──
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new TraderPlaceholder(this).register();
+            getLogger().info("PlaceholderAPI найден — плейсхолдеры зарегистрированы.");
+        }
 
         getLogger().info("╔══════════════════════════════════╗");
         getLogger().info("║  SUDORU Диалоговая Торговля      ║");
@@ -43,7 +58,7 @@ public final class SUDORUDialoges extends JavaPlugin {
     @Override
     public void onDisable() {
         if (traderManager != null) traderManager.shutdown();
-        getLogger().info("SUDORUDialoges выключен. Торговля завершена.");
+        getLogger().info("SUDORUDialoges выключен.");
     }
 
     // ─── Валюта ──────────────────────────────────────────────────────
@@ -55,8 +70,7 @@ public final class SUDORUDialoges extends JavaPlugin {
 
     /** Количество валюты у игрока */
     public int getCurrencyAmount(Player player) {
-        String type = getConfig().getString("currency.type", "ITEM");
-        if ("ITEM".equalsIgnoreCase(type)) {
+        if ("ITEM".equalsIgnoreCase(getConfig().getString("currency.type", "ITEM"))) {
             Material mat = getCurrencyMaterial();
             int count = 0;
             for (ItemStack stack : player.getInventory().getContents()) {
@@ -72,8 +86,7 @@ public final class SUDORUDialoges extends JavaPlugin {
      * Возвращает false, если недостаточно.
      */
     public boolean takeCurrency(Player player, int amount) {
-        String type = getConfig().getString("currency.type", "ITEM");
-        if ("ITEM".equalsIgnoreCase(type)) {
+        if ("ITEM".equalsIgnoreCase(getConfig().getString("currency.type", "ITEM"))) {
             if (getCurrencyAmount(player) < amount) return false;
             Material mat = getCurrencyMaterial();
             int toRemove = amount;
@@ -100,7 +113,6 @@ public final class SUDORUDialoges extends JavaPlugin {
 
     // ─── Геттеры ─────────────────────────────────────────────────────
 
-    public TraderManager getTraderManager() {
-        return traderManager;
-    }
+    public TraderManager getTraderManager() { return traderManager; }
+    public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
 }
