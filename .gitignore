@@ -1,0 +1,26 @@
+# Скомпилированные артефакты
+target/
+*.class
+
+# Файлы IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+*.jar
+!src/**
+
+# Логи
+*.log
+
+# Локальные конфиги сервера (если тестируешь локально)
+server/
+test-server/
+

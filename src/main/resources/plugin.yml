@@ -1,0 +1,27 @@
+name: SUDORUDialoges
+version: '1.0-SNAPSHOT'
+main: org.SUDORU.sUDORUDialoges.SUDORUDialoges
+api-version: '1.21'
+description: "Диалоговая торговая система SUDORU"
+authors: [SUDORU]
+
+commands:
+  trader:
+    description: "Открыть меню торговца"
+    usage: "/trader <имя>"
+    aliases: [trade, shop]
+  traderreload:
+    description: "Перезагрузить конфигурацию торговцев"
+    usage: "/traderreload"
+    aliases: [tradereload]
+
+permissions:
+  sudoru.trader:
+    description: "Использовать команду /trader"
+    default: true
+  sudoru.trader.reload:
+    description: "Перезагрузка конфигурации"
+    default: op
+  sudoru.trader.bypass:
+    description: "Обход ограничений (бесплатная покупка)"
+    default: op

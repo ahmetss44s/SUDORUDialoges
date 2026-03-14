@@ -1,0 +1,267 @@
+# ╔══════════════════════════════════════════════════╗
+# ║      SUDORU Диалоговая Торговая Система          ║
+# ║  Настройки торговцев - редактируй свободно!      ║
+# ╚══════════════════════════════════════════════════╝
+
+# Настройки валюты
+currency:
+  # Тип валюты: ITEM (предмет из инвентаря) или VAULT (требует Vault)
+  type: ITEM
+  # Если type: ITEM — укажите материал предмета-валюты
+  item-material: EMERALD
+  # Название предмета-валюты (для отображения)
+  item-name: "Изумруд"
+
+# ════════════════════════════════════
+# ТОРГОВЦЫ
+# Можно добавить сколько угодно секций
+# ════════════════════════════════════
+traders:
+
+  # ── Торговец 1: Кузнец ──────────────────────────
+  blacksmith:
+    # Отображаемое имя (поддерживает &-коды цветов)
+    display-name: "&8⚒ &7Таинственный &fКузнец"
+    # Описание (показывается в заголовке меню)
+    description: "&7«Добро пожаловать, путник.\n&7Выбирай товар. Я не жду долго.»"
+    # Иконка торговца (голова, которая появляется в меню)
+    icon-material: ANVIL
+    # Через сколько секунд обновляется ассортимент (0 = никогда)
+    refresh-seconds: 300
+    # Минимум и максимум предметов в одном ассортименте (от 5 до 8)
+    min-items: 5
+    max-items: 8
+    # Список ВСЕХ возможных предметов торговца
+    items:
+      - material: DIAMOND_SWORD
+        name: "&bАлмазный меч"
+        lore:
+          - "&7Острый как правда."
+        price: 10
+        price-range: 3
+        chance: 40.0
+        amount: 1
+        enchantments: []
+
+      - material: DIAMOND_PICKAXE
+        name: "&bАлмазная кирка"
+        lore:
+          - "&7Копает глубже, чем тайны."
+        price: 12
+        price-range: 2
+        chance: 35.0
+        amount: 1
+        enchantments: []
+
+      - material: DIAMOND_CHESTPLATE
+        name: "&bАлмазный нагрудник"
+        lore:
+          - "&7Броня для избранных."
+        price: 15
+        price-range: 4
+        chance: 25.0
+        amount: 1
+        enchantments: []
+
+      - material: IRON_SWORD
+        name: "&7Железный меч"
+        lore:
+          - "&7Надёжен и прост."
+        price: 4
+        price-range: 1
+        chance: 60.0
+        amount: 1
+        enchantments: []
+
+      - material: IRON_PICKAXE
+        name: "&7Железная кирка"
+        lore:
+          - "&7Для тех, кто любит труд."
+        price: 5
+        price-range: 1
+        chance: 55.0
+        amount: 1
+        enchantments: []
+
+      - material: SHIELD
+        name: "&fЩит"
+        lore:
+          - "&7От стрел и обид."
+        price: 6
+        price-range: 2
+        chance: 45.0
+        amount: 1
+        enchantments: []
+
+      - material: NETHERITE_INGOT
+        name: "&4Незеритовый слиток"
+        lore:
+          - "&7Редкость подземелий."
+        price: 30
+        price-range: 5
+        chance: 10.0
+        amount: 1
+        enchantments: []
+
+      - material: ENCHANTED_GOLDEN_APPLE
+        name: "&6Зачарованное яблоко"
+        lore:
+          - "&7Легенда на ладони."
+        price: 25
+        price-range: 5
+        chance: 8.0
+        amount: 1
+        enchantments: []
+
+  # ── Торговец 2: Зельевар ───────────────────────
+  alchemist:
+    display-name: "&5⚗ &dТаинственный &5Зельевар"
+    description: "&5«Мои зелья не из простых...\n&5Что берёшь, то и получишь.»"
+    icon-material: BREWING_STAND
+    refresh-seconds: 180
+    min-items: 5
+    max-items: 7
+    items:
+      - material: POTION
+        name: "&aЗелье лечения II"
+        lore:
+          - "&7Исцеляет раны."
+        price: 5
+        price-range: 1
+        chance: 50.0
+        amount: 1
+        potion-type: STRONG_HEALING
+        enchantments: []
+
+      - material: POTION
+        name: "&9Зелье скорости II"
+        lore:
+          - "&7Быстрее ветра."
+        price: 6
+        price-range: 2
+        chance: 45.0
+        amount: 1
+        potion-type: STRONG_SWIFTNESS
+        enchantments: []
+
+      - material: POTION
+        name: "&cЗелье силы II"
+        lore:
+          - "&7Кулак как молот."
+        price: 8
+        price-range: 2
+        chance: 35.0
+        amount: 1
+        potion-type: STRONG_STRENGTH
+        enchantments: []
+
+      - material: POTION
+        name: "&fЗелье невидимости"
+        lore:
+          - "&7Теперь ты — тень."
+        price: 10
+        price-range: 3
+        chance: 20.0
+        amount: 1
+        potion-type: INVISIBILITY
+        enchantments: []
+
+      - material: GOLDEN_APPLE
+        name: "&6Золотое яблоко"
+        lore:
+          - "&7Укрепляет дух."
+        price: 7
+        price-range: 2
+        chance: 40.0
+        amount: 1
+        enchantments: []
+
+      - material: SPIDER_EYE
+        name: "&cПаучий глаз"
+        lore:
+          - "&7Ингредиент особого зелья."
+        price: 3
+        price-range: 1
+        chance: 70.0
+        amount: 3
+        enchantments: []
+
+      - material: BLAZE_POWDER
+        name: "&6Порошок Огненника"
+        lore:
+          - "&7Горит, но не обжигает владельца."
+        price: 4
+        price-range: 1
+        chance: 60.0
+        amount: 2
+        enchantments: []
+
+  # ── Торговец 3: Торговец реликвиями ─────────────
+  relic:
+    display-name: "&6✦ &eТорговец &6Реликвиями"
+    description: "&e«Каждый предмет здесь имеет\n&eсвою историю. И свою цену.»"
+    icon-material: ENDER_CHEST
+    refresh-seconds: 600
+    min-items: 5
+    max-items: 6
+    items:
+      - material: TOTEM_OF_UNDYING
+        name: "&6Тотем бессмертия"
+        lore:
+          - "&7Подарит второй шанс."
+        price: 40
+        price-range: 10
+        chance: 15.0
+        amount: 1
+        enchantments: []
+
+      - material: ELYTRA
+        name: "&dЭлитры"
+        lore:
+          - "&7Крылья дракона — твои."
+        price: 50
+        price-range: 8
+        chance: 10.0
+        amount: 1
+        enchantments: []
+
+      - material: END_CRYSTAL
+        name: "&5Кристалл Края"
+        lore:
+          - "&7Сила пустоты."
+        price: 20
+        price-range: 5
+        chance: 25.0
+        amount: 1
+        enchantments: []
+
+      - material: DRAGON_EGG
+        name: "&8Яйцо Дракона"
+        lore:
+          - "&7Уникальная реликвия."
+        price: 100
+        price-range: 0
+        chance: 3.0
+        amount: 1
+        enchantments: []
+
+      - material: NETHER_STAR
+        name: "&fЗвезда Пустоты"
+        lore:
+          - "&7Сердце Визера."
+        price: 60
+        price-range: 15
+        chance: 8.0
+        amount: 1
+        enchantments: []
+
+      - material: HEART_OF_THE_SEA
+        name: "&bСердце моря"
+        lore:
+          - "&7Тайна океанских глубин."
+        price: 35
+        price-range: 5
+        chance: 20.0
+        amount: 1
+        enchantments: []
+
