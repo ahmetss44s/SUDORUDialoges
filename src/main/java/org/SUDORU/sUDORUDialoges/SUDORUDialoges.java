@@ -1,10 +1,13 @@
 package org.SUDORU.sUDORUDialoges;
 
+import org.SUDORU.sUDORUDialoges.command.ConfigMenuCommand;
 import org.SUDORU.sUDORUDialoges.command.ReloadCommand;
 import org.SUDORU.sUDORUDialoges.command.ShopCommand;
 import org.SUDORU.sUDORUDialoges.command.TraderMenuCommand;
+import org.SUDORU.sUDORUDialoges.listener.ConfigMenuListener;
 import org.SUDORU.sUDORUDialoges.listener.MenuEditorListener;
 import org.SUDORU.sUDORUDialoges.listener.ShopMenuListener;
+import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
 import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
 import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
 import org.SUDORU.sUDORUDialoges.shop.TraderManager;
@@ -19,6 +22,7 @@ public final class SUDORUDialoges extends JavaPlugin {
 
     private TraderManager traderManager;
     private TraderMenuGUI traderMenuGUI;
+    private ConfigMenuGUI configMenuGUI;
 
     @Override
     public void onEnable() {
@@ -30,6 +34,7 @@ public final class SUDORUDialoges extends JavaPlugin {
         traderManager.loadAll();
 
         traderMenuGUI = new TraderMenuGUI(this);
+        configMenuGUI = new ConfigMenuGUI(this);
 
         // ── Команды ──
         ShopCommand shopCmd = new ShopCommand(this);
@@ -37,10 +42,14 @@ public final class SUDORUDialoges extends JavaPlugin {
         Objects.requireNonNull(getCommand("trader")).setTabCompleter(shopCmd);
         Objects.requireNonNull(getCommand("traderreload")).setExecutor(new ReloadCommand(this));
         Objects.requireNonNull(getCommand("tradermenu")).setExecutor(new TraderMenuCommand(this, traderMenuGUI));
+        ConfigMenuCommand cfgCmd = new ConfigMenuCommand(this, configMenuGUI);
+        Objects.requireNonNull(getCommand("traderconfig")).setExecutor(cfgCmd);
+        Objects.requireNonNull(getCommand("traderconfig")).setTabCompleter(cfgCmd);
 
         // ── Слушатели ──
         getServer().getPluginManager().registerEvents(new ShopMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuEditorListener(this, traderMenuGUI), this);
+        getServer().getPluginManager().registerEvents(new ConfigMenuListener(this, configMenuGUI), this);
 
         // ── PlaceholderAPI (опционально) ──
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -115,4 +124,5 @@ public final class SUDORUDialoges extends JavaPlugin {
 
     public TraderManager getTraderManager() { return traderManager; }
     public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
+    public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
 }

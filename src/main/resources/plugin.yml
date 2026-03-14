@@ -15,6 +15,10 @@ commands:
     description: "GUI-редактор торговцев (admin)"
     usage: "/tradermenu [id]"
     aliases: [trmenu, shopeditor]
+  traderconfig:
+    description: "Полное GUI-меню настроек config.yml"
+    usage: "/traderconfig [currency|trader <id>|items <id>]"
+    aliases: [tconfig, shopconfig]
   traderreload:
     description: "Перезагрузить конфигурацию торговцев"
     usage: "/traderreload"
