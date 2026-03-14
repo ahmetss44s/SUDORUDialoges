@@ -21,7 +21,9 @@ import java.util.Objects;
 public final class SUDORUDialoges extends JavaPlugin {
 
     private TraderManager traderManager;
+    @SuppressWarnings("unused")
     private TraderMenuGUI traderMenuGUI;
+    @SuppressWarnings("unused")
     private ConfigMenuGUI configMenuGUI;
 
     @Override

@@ -28,7 +28,7 @@ public class ConfigMenuCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
-                             @NotNull String label, @NotNull String[] args) {
+                             @NotNull String label, @NotNull String @NotNull [] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cТолько игрок!");
             return true;
@@ -68,7 +68,7 @@ public class ConfigMenuCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
-                                      @NotNull String alias, @NotNull String[] args) {
+                                      @NotNull String alias, @NotNull String @NotNull [] args) {
         List<String> result = new ArrayList<>();
         if (args.length == 1) {
             for (String s : List.of("currency", "trader", "items"))
