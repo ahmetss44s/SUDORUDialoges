@@ -196,6 +196,13 @@ public class TraderDialogMenu implements Listener {
         ShopItem si = data.getItem();
         int price = data.getPrice();
 
+        // Строка с названием предмета (жирная)
+        var nameBody = prov.plainMessageDialogBody(
+                ColorUtil.parse(si.getName())
+                        .decoration(TextDecoration.ITALIC, false)
+                        .decorate(TextDecoration.BOLD), 310);
+
+        // Иконка + описание (лор + цена)
         ItemDialogBody itemBody = prov.itemDialogBodyBuilder(buildDisplayStack(si))
                 .description(prov.plainMessageDialogBody(buildLoreComponent(si, price), 200))
                 .showDecorations(true).showTooltip(false).width(310).height(64).build();
@@ -274,7 +281,7 @@ public class TraderDialogMenu implements Listener {
                 .decorate(TextDecoration.BOLD);
 
         DialogBase base = prov.dialogBaseBuilder(cardTitle).externalTitle(cardTitle)
-                .body(List.of(itemBody)).canCloseWithEscape(true).pause(false)
+                .body(List.of(nameBody, itemBody)).canCloseWithEscape(true).pause(false)
                 .afterAction(DialogBase.DialogAfterAction.NONE).build();
 
         player.showDialog(Dialog.create(f -> f.empty().base(base)
