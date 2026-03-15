@@ -53,6 +53,7 @@ public final class SUDORUDialoges extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ShopMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuEditorListener(this, traderMenuGUI), this);
         getServer().getPluginManager().registerEvents(new ConfigMenuListener(this, configMenuGUI), this);
+        getServer().getPluginManager().registerEvents(traderDialogMenu, this); // чат для ×N покупки
 
         // ── PlaceholderAPI (опционально) ──
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -102,13 +103,19 @@ public final class SUDORUDialoges extends JavaPlugin {
             if (getCurrencyAmount(player) < amount) return false;
             Material mat = getCurrencyMaterial();
             int toRemove = amount;
-            ItemStack[] contents = player.getInventory().getContents();
+            org.bukkit.inventory.Inventory inv = player.getInventory();
+            ItemStack[] contents = inv.getContents();
             for (int i = 0; i < contents.length && toRemove > 0; i++) {
                 ItemStack stack = contents[i];
                 if (stack != null && stack.getType() == mat) {
                     int take = Math.min(stack.getAmount(), toRemove);
-                    stack.setAmount(stack.getAmount() - take);
                     toRemove -= take;
+                    if (take >= stack.getAmount()) {
+                        inv.setItem(i, null); // полностью убрать стак
+                    } else {
+                        stack.setAmount(stack.getAmount() - take);
+                        inv.setItem(i, stack);
+                    }
                 }
             }
             player.updateInventory();

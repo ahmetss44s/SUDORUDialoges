@@ -387,7 +387,7 @@ public class ConfigMenuGUI {
                     si.getMaterial(),
                     si.getName(),
                     "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
-                    "§7Индекс: §f#" + idx,
+                    "§7Индекс: §f#" + (idx + 1),
                     "§7Цена: §a" + si.getBasePrice() + " §7±§c" + si.getPriceRange(),
                     "§7Шанс: §e" + si.getChance() + "%",
                     "§7Кол-во: §f" + si.getAmount(),
@@ -433,14 +433,14 @@ public class ConfigMenuGUI {
         var si = items.get(itemIdx);
 
         Inventory inv = Bukkit.createInventory(null, 54,
-                ColorUtil.parse(T_ITEM_EDIT + itemIdx + " (" + traderId + ")"));
+                ColorUtil.parse(T_ITEM_EDIT + (itemIdx + 1) + " (" + traderId + ")"));
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
 
         // Превью предмета
         inv.setItem(4, item(si.getMaterial(),
                 si.getName(),
                 "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
-                "§7Индекс: §f#" + itemIdx,
+                "§7Индекс: §f#" + (itemIdx + 1),
                 "§7Material: §f" + si.getMaterial(),
                 "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
         ));

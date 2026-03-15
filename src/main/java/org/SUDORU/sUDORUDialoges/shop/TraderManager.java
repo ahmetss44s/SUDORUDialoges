@@ -44,8 +44,7 @@ public class TraderManager {
 
             List<ShopItem> items = loadItems(sec);
             if (items.isEmpty()) {
-                plugin.getLogger().warning("Торговец '" + id + "' не имеет предметов — пропускаем.");
-                continue;
+                plugin.getLogger().info("Торговец '" + id + "' — список предметов пуст (редактирование доступно).");
             }
 
             TraderConfig traderCfg = new TraderConfig(id, displayName, description,

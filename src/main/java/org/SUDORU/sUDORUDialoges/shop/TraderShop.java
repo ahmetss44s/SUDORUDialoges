@@ -1,6 +1,7 @@
 package org.SUDORU.sUDORUDialoges.shop;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
 import org.SUDORU.sUDORUDialoges.util.ColorUtil;
@@ -176,13 +177,23 @@ public class TraderShop {
 
             ShopItem si = data.getItem();
 
-            // Имя предмета (строка выше иконки)
-            inv.setItem(NAME_SLOTS[i], buildItem(Material.PAPER,
-                    si.getName(),
-                    List.of("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
-                            "&#FFAA00💰 §6Цена: &#FFD700§l" + data.getPrice()
-                                    + " §r§7" + plugin.getCurrencyName(),
-                            "&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")));
+            // Имя предмета — жирным
+            ItemStack nameItem = new ItemStack(Material.PAPER);
+            {
+                ItemMeta nm = nameItem.getItemMeta();
+                if (nm != null) {
+                    nm.displayName(ColorUtil.parse(si.getName())
+                            .decoration(TextDecoration.ITALIC, false)
+                            .decorate(TextDecoration.BOLD));
+                    nm.lore(List.of(
+                            ColorUtil.parse("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"),
+                            ColorUtil.parse("&#FFAA00💰 §6Цена: &#FFD700§l" + data.getPrice()
+                                    + " §r§7" + plugin.getCurrencyName()),
+                            ColorUtil.parse("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")));
+                    nameItem.setItemMeta(nm);
+                }
+            }
+            inv.setItem(NAME_SLOTS[i], nameItem);
 
             // Иконка предмета (большой квадрат — по центру карточки)
             inv.setItem(ICON_SLOTS[i], buildProductItem(data));

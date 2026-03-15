@@ -491,7 +491,7 @@ public class ConfigMenuListener implements Listener {
         plugin.saveConfig();
         plugin.reloadConfig();
         plugin.getTraderManager().loadAll();
-        player.sendMessage(ColorUtil.parse("§c✖ Предмет §f#" + itemIdx + " §cудалён."));
+        player.sendMessage(ColorUtil.parse("§c✖ Предмет §f#" + (itemIdx + 1) + " §cудалён."));
         gui.openItems(player, traderId, page);
     }
 
