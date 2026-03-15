@@ -93,6 +93,12 @@ public class MenuEditorListener implements Listener {
                 return;
             }
 
+            // Редактирование предметов — открываем ConfigMenuGUI
+            if (slot == 28) {
+                plugin.getConfigMenuGUI().openItems(player, traderId, 0);
+                return;
+            }
+
             // Редактирование полей — запрашиваем через чат
             String field = switch (slot) {
                 case 10 -> "display-name";
@@ -104,7 +110,9 @@ public class MenuEditorListener implements Listener {
 
             // Мин/макс предметов кнопками
             if (slot == 13) {
-                var cfg = plugin.getTraderManager().getShop(traderId).getConfig();
+                var shop = plugin.getTraderManager().getShop(traderId);
+                if (shop == null) return;
+                var cfg = shop.getConfig();
                 int min = cfg.getMinItems(), max = cfg.getMaxItems();
                 if (event.getClick() == ClickType.LEFT)           min = Math.max(1, min - 1);
                 else if (event.getClick() == ClickType.RIGHT)     min = Math.min(max, min + 1);

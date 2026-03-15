@@ -24,9 +24,11 @@ public class TraderShop {
 
     private static final int MENU_SIZE = 54;
 
-    // Слоты товаров (ряд 3) и кнопок покупки (ряд 4)
-    private static final int[] PRODUCT_SLOTS = {19, 21, 23, 25, 27};
-    private static final int[] BUTTON_SLOTS  = {28, 30, 32, 34, 36};
+    // Ряд 3 (18-26): [I1][sp][I2][sp][I3][sp][I4][sp][I5]
+    // Ряд 4 (27-35): [B1][sp][B2][sp][B3][sp][B4][sp][B5]
+    // Кнопка Bi находится прямо под Ii (+9)
+    private static final int[] PRODUCT_SLOTS = {18, 20, 22, 24, 26};
+    private static final int[] BUTTON_SLOTS  = {27, 29, 31, 33, 35};
 
     private final SUDORUDialoges plugin;
     private final TraderConfig config;
@@ -107,8 +109,8 @@ public class TraderShop {
         ItemStack darkBg  = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
         ItemStack grayBg  = buildItem(Material.GRAY_STAINED_GLASS_PANE,  "§8 ");
         for (int i = 0; i < MENU_SIZE; i++) inv.setItem(i, darkBg);
-        // Строки 3-4 (18-35) — светлее
-        for (int i = 18; i <= 44; i++) inv.setItem(i, grayBg);
+        // Строки 3-4 (18-35) — светлее (зона товаров и кнопок)
+        for (int i = 18; i <= 35; i++) inv.setItem(i, grayBg);
     }
 
     private void fillHeader(Inventory inv) {
@@ -131,13 +133,14 @@ public class TraderShop {
         ItemStack divider = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
         for (int s = 9; s <= 17; s++) inv.setItem(s, divider);
 
-        // Украшения между товарами
+        // Украшения между товарами (строки 3-4)
         ItemStack spacer = buildItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, "§7 ");
-        inv.setItem(18, spacer); inv.setItem(20, spacer); inv.setItem(22, spacer);
-        inv.setItem(24, spacer); inv.setItem(26, spacer);
-        inv.setItem(29, spacer); inv.setItem(31, spacer); inv.setItem(33, spacer);
-        inv.setItem(35, spacer); inv.setItem(37, spacer); inv.setItem(39, spacer);
-        inv.setItem(41, spacer); inv.setItem(43, spacer);
+        // Разделители между товарами в ряду 3: 19, 21, 23, 25
+        inv.setItem(19, spacer); inv.setItem(21, spacer); inv.setItem(23, spacer); inv.setItem(25, spacer);
+        // Разделители между кнопками в ряду 4: 28, 30, 32, 34
+        inv.setItem(28, spacer); inv.setItem(30, spacer); inv.setItem(32, spacer); inv.setItem(34, spacer);
+        // Декоративная строка 5 (36-44)
+        for (int s = 36; s <= 44; s++) inv.setItem(s, divider);
     }
 
     private void fillItems(Inventory inv) {
@@ -168,7 +171,7 @@ public class TraderShop {
     }
 
     private void fillFooter(Inventory inv) {
-        // Строка 6 (45-53)
+        // Строка 6 (45-53) — подвал
         ItemStack darkPane = buildItem(Material.BLACK_STAINED_GLASS_PANE, "§0 ");
         for (int s = 45; s < 54; s++) inv.setItem(s, darkPane);
 
@@ -177,8 +180,8 @@ public class TraderShop {
         ItemStack info = buildItem(Material.CLOCK,
                 "&#FFFF55⏱ §eОбновление",
                 List.of("&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
-                        "&#AAAAAA Следующее обновление: §f" + refreshText,
-                        "&#AAAAAA Предметов сегодня: §f" + activeSlots.size(),
+                        "&#AAAAAA Следующее: §f" + refreshText,
+                        "&#AAAAAA Товаров: §f" + activeSlots.size() + " / 5",
                         "&#888888▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
         inv.setItem(49, info);
 
@@ -187,11 +190,12 @@ public class TraderShop {
                 List.of("&#AAAAAA Закрыть меню торговца."));
         inv.setItem(53, close);
 
-        // Украшения по краям
+        // Украшения по краям подвала
         ItemStack purpleDec = buildItem(Material.PURPLE_STAINED_GLASS_PANE, "§5 ");
         ItemStack cyanDec   = buildItem(Material.CYAN_STAINED_GLASS_PANE, "§3 ");
         inv.setItem(45, purpleDec); inv.setItem(46, cyanDec);
-        inv.setItem(50, cyanDec);  inv.setItem(51, cyanDec); inv.setItem(52, cyanDec);
+        inv.setItem(47, darkPane); inv.setItem(48, darkPane);
+        inv.setItem(50, darkPane); inv.setItem(51, cyanDec); inv.setItem(52, purpleDec);
     }
 
     // ─── Построители предметов ──────────────────────────────────────

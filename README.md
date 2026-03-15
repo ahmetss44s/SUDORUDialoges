@@ -3,7 +3,7 @@
 # ⚔️ SUDORUDialoges
 ### Диалоговая Торговая Система для Minecraft 1.21.x (Paper)
 
-[![Version](https://img.shields.io/badge/Версия-1.0.1-gold?style=for-the-badge)](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.1)
+[![Version](https://img.shields.io/badge/Версия-1.0.2-gold?style=for-the-badge)](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.2)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.x-brightgreen?style=for-the-badge&logo=minecraft)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
 [![Paper](https://img.shields.io/badge/API-Paper-blue?style=for-the-badge)](https://papermc.io)
@@ -22,7 +22,7 @@
 | 🚫 Без NPC | Меню открывается командой `/trader <имя>` |
 | 🎲 Случайный ассортимент | Каждый торговец имеет **5–8 предметов** с настраиваемыми шансами |
 | 🔁 Дубликаты | Один и тот же предмет может выпасть **2–3 раза** одновременно |
-| 🛑 Блокировка слота | Купленный товар → **барьер** (нельзя купить повторно) |
+| 🛑 Блокировка слота | Купленный товар → **барьер** (нельзя взять, нельзя купить повторно) |
 | ⏱️ Автообновление | Ассортимент обновляется автоматически через заданное время |
 | 💎 Предметная валюта | По умолчанию — **изумруды**, легко меняется в конфиге |
 | 🎨 HEX цвета | Поддержка `&#RRGGBB` и `#RRGGBB` во всём интерфейсе |
@@ -54,7 +54,7 @@
 
 ## 📦 Установка
 
-1. Скачай последний релиз [`SUDORUDialoges-1.0.1.jar`](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.1) из [Releases](../../releases)
+1. Скачай последний релиз [`SUDORUDialoges-1.0.2.jar`](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.2) из [Releases](../../releases)
 2. Скопируй в папку `plugins/` сервера
 3. Запусти / перезапусти сервер
 4. Конфиг создастся автоматически: `plugins/SUDORUDialoges/config.yml`
@@ -79,15 +79,15 @@
 
 ### 🛠️ Для администраторов
 
-| Команда | Описание | Право |
-|---|---|---|
-| `/tradermenu` | Открыть GUI-панель управления торговцами | `sudoru.trader.admin` |
-| `/tradermenu <id>` | Открыть редактор конкретного торговца | `sudoru.trader.admin` |
-| `/traderconfig` | Открыть полное GUI-меню всех настроек `config.yml` | `sudoru.trader.admin` |
-| `/traderconfig currency` | Открыть настройки валюты | `sudoru.trader.admin` |
-| `/traderconfig trader <id>` | Открыть настройки конкретного торговца | `sudoru.trader.admin` |
-| `/traderconfig items <id>` | Открыть список предметов торговца | `sudoru.trader.admin` |
-| `/traderreload` | Перезагрузить `config.yml` без рестарта сервера | `sudoru.trader.reload` |
+| Команда | Алиасы | Описание | Право |
+|---|---|---|---|
+| `/tradermenu` | `/trmenu`, `/shopeditor` | GUI-панель управления торговцами | `sudoru.trader.admin` |
+| `/tradermenu <id>` | — | Открыть редактор конкретного торговца | `sudoru.trader.admin` |
+| `/traderconfig` | `/tconfig`, `/shopconfig` | Полное GUI-меню всех настроек `config.yml` | `sudoru.trader.admin` |
+| `/traderconfig currency` | — | Настройки валюты | `sudoru.trader.admin` |
+| `/traderconfig trader <id>` | — | Настройки конкретного торговца | `sudoru.trader.admin` |
+| `/traderconfig items <id>` | — | Список предметов торговца | `sudoru.trader.admin` |
+| `/traderreload` | `/tradereload` | Перезагрузить `config.yml` без рестарта | `sudoru.trader.reload` |
 
 **Алиасы:**
 - `/tradermenu` → `/trmenu`, `/shopeditor`
@@ -269,7 +269,7 @@ cd SUDORUDialoges
 mvn clean package
 ```
 
-JAR будет в `target/SUDORUDialoges-1.0.1.jar`
+JAR будет в `target/SUDORUDialoges-1.0.2.jar`
 
 ---
 

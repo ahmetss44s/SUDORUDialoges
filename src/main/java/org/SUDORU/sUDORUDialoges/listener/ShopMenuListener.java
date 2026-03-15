@@ -11,10 +11,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 
 /**
  * Слушает клики в меню торговца.
  * Исправлен баг: клики в нижнем инвентаре (инвентарь игрока) тоже блокируются.
+ * Исправлен баг: HIGHEST приоритет + updateInventory предотвращает взятие барьера.
  */
 public class ShopMenuListener implements Listener {
 
@@ -24,7 +26,7 @@ public class ShopMenuListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
@@ -34,11 +36,13 @@ public class ShopMenuListener implements Listener {
 
         // ── ФИКС БАГА: блокируем ВСЕ клики (и верхний, и нижний инвентарь) ──
         event.setCancelled(true);
+        // Принудительная синхронизация клиента — предотвращает взятие барьера
+        player.updateInventory();
 
         int slot = event.getRawSlot();
 
-        // Клик в нижнем инвентаре игрока — просто блокируем, ничего не делаем
-        if (slot >= event.getView().getTopInventory().getSize()) return;
+        // Клик вне инвентаря (rawSlot = -999 или < 0) или в нижнем инвентаре игрока
+        if (slot < 0 || slot >= event.getView().getTopInventory().getSize()) return;
 
         // Кнопка «закрыть»
         if (shop.isCloseSlot(slot)) {
@@ -57,11 +61,25 @@ public class ShopMenuListener implements Listener {
     }
 
     // Блокируем drag (перетаскивание) внутри меню торговца
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         Component title = event.getView().title();
         if (findShopByTitle(title) != null) {
+            event.setCancelled(true);
+            player.updateInventory();
+        }
+    }
+
+    // Блокируем перемещение предметов хоперами и т.д.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onInventoryMove(InventoryMoveItemEvent event) {
+        // Проверяем, не является ли источник или назначение нашим магазином
+        Component srcTitle = event.getSource().getViewers().isEmpty()
+                ? null
+                : event.getSource().getViewers().get(0) instanceof Player p
+                    ? p.getOpenInventory().title() : null;
+        if (srcTitle != null && findShopByTitle(srcTitle) != null) {
             event.setCancelled(true);
         }
     }
@@ -71,12 +89,12 @@ public class ShopMenuListener implements Listener {
         for (String id : plugin.getTraderManager().getShopIds()) {
             TraderShop shop = plugin.getTraderManager().getShop(id);
             if (shop == null) continue;
-            String shopName = ColorUtil.toColoredString(shop.getConfig().getDisplayName());
-            // Сравниваем plain text
-            Component shopComp = ColorUtil.parse(shopName);
+            // Сравниваем plain text заголовка с plain text имени торговца
+            Component shopComp = ColorUtil.parse(shop.getConfig().getDisplayName());
             String plainShop = PlainTextComponentSerializer.plainText().serialize(shopComp);
             if (plainTitle.equals(plainShop)) return shop;
         }
         return null;
     }
 }
+

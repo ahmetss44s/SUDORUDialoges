@@ -57,11 +57,11 @@ public final class SUDORUDialoges extends JavaPlugin {
             getLogger().info("PlaceholderAPI найден — плейсхолдеры зарегистрированы.");
         }
 
-        getLogger().info("╔══════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля      ║");
-        getLogger().info("║  Загружено торговцев: "
-                + String.format("%-11s", traderManager.getShopIds().size()) + "║");
-        getLogger().info("╚══════════════════════════════════╝");
+        getLogger().info("╔══════════════════════════════════════╗");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.0.2  ║");
+        getLogger().info("║  Торговцев загружено: "
+                + String.format("%-15s", traderManager.getShopIds().size()) + "║");
+        getLogger().info("╚══════════════════════════════════════╝");
     }
 
     @Override

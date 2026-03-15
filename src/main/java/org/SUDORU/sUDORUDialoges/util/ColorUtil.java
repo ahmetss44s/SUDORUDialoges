@@ -58,8 +58,8 @@ public class ColorUtil {
         StringBuffer sb = new StringBuffer();
         Matcher m = HEX_PATTERN.matcher(text);
         while (m.find()) {
-            String hex = m.group(1);
-            m.appendReplacement(sb, buildLegacyHex(hex));
+            String hex = m.group(1).toUpperCase();
+            m.appendReplacement(sb, Matcher.quoteReplacement(buildLegacyHex(hex)));
         }
         m.appendTail(sb);
         String result = sb.toString();
@@ -70,12 +70,12 @@ public class ColorUtil {
         while (m.find()) {
             // Проверяем что перед # нет §x (уже обработано)
             int start = m.start();
-            if (start > 0 && result.charAt(start - 1) == '§') {
-                m.appendReplacement(sb, m.group(0));
+            if (start > 0 && result.charAt(start - 1) == '\u00A7') {
+                m.appendReplacement(sb, Matcher.quoteReplacement(m.group(0)));
                 continue;
             }
-            String hex = m.group(1);
-            m.appendReplacement(sb, buildLegacyHex(hex));
+            String hex = m.group(1).toUpperCase();
+            m.appendReplacement(sb, Matcher.quoteReplacement(buildLegacyHex(hex)));
         }
         m.appendTail(sb);
         return sb.toString();
