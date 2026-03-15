@@ -111,7 +111,10 @@ public class TraderDialogMenu {
                 Component.text("Выход")
                         .color(NamedTextColor.RED)
                         .decoration(TextDecoration.ITALIC, false))
-                .action(prov.register((view, audience) -> {}, opts))
+                .action(prov.register((view, audience) -> {
+                    if (!(audience instanceof Player p)) return;
+                    plugin.getServer().getScheduler().runTask(plugin, (Runnable) p::closeInventory);
+                }, opts))
                 .width(150)
                 .build();
 

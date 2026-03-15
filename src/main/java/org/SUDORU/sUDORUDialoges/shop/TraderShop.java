@@ -229,6 +229,27 @@ public class TraderShop {
         return stack;
     }
 
+    /**
+     * Создаёт чистый ItemStack для выдачи игроку:
+     * только оригинальный лор из конфига, без пометок магазина.
+     */
+    private ItemStack buildRewardItem(ShopItem si) {
+        ItemStack stack = new ItemStack(si.getMaterial(), si.getAmount());
+
+        // Зелья
+        if (si.getPotionType() != null && !si.getPotionType().isEmpty()) {
+            if (stack.getItemMeta() instanceof PotionMeta pm) {
+                try {
+                    pm.setBasePotionType(PotionType.valueOf(si.getPotionType().toUpperCase()));
+                    stack.setItemMeta(pm);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        applyMeta(stack, si.getName(), si.getLore());
+        return stack;
+    }
+
     private ItemStack buildBuyButton(SlotData data) {
         return buildItem(Material.LIME_STAINED_GLASS_PANE,
                 "&#55FF55§l✔ §r&#55FF55КУПИТЬ &#FFDD00§l" + data.getPrice() + " §r&#AAAAAA" + plugin.getCurrencyName(),
@@ -282,7 +303,7 @@ public class TraderShop {
         }
 
         ShopItem si = data.getItem();
-        ItemStack reward = buildProductItem(data).clone();
+        ItemStack reward = buildRewardItem(si);
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(reward);
         if (!overflow.isEmpty()) {
             for (ItemStack drop : overflow.values())
