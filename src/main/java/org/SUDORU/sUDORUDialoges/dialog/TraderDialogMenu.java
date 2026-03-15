@@ -100,7 +100,7 @@ public class TraderDialogMenu implements Listener {
                     totalCost + " §7" + plugin.getCurrencyName()));
             boolean ok = pending.shop.tryPurchase(player, pending.slotIndex, finalQty);
             if (ok) {
-                openItemCard(player, pending.shop, pending.slotIndex);
+                open(player, pending.shop); // вернуться в главный список
             }
         });
     }
@@ -109,7 +109,7 @@ public class TraderDialogMenu implements Listener {
 
     /** Открыть главный список товаров торговца */
     public void open(Player player, TraderShop shop) {
-        pendingBuys.remove(player.getUniqueId()); // сброс любого ожидания
+        pendingBuys.remove(player.getUniqueId());
 
         var cfg = shop.getConfig();
         var prov = DialogInstancesProvider.instance();
@@ -119,50 +119,104 @@ public class TraderDialogMenu implements Listener {
         String desc = cfg.getDescription();
         if (desc != null && !desc.isEmpty()) {
             bodyList.add(prov.plainMessageDialogBody(
-                    ColorUtil.parse(desc.replace("\\n", "\n")), 280));
+                    ColorUtil.parse(desc.replace("\\n", "\n")), 350));
         }
 
         List<ActionButton> buttons = new ArrayList<>();
         Map<Integer, TraderShop.SlotData> slots = shop.getActiveSlots();
 
         if (slots.isEmpty()) {
+            // Нет товаров — одна широкая кнопка
             buttons.add(ActionButton.builder(
                     Component.text("— Нет товаров —", NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false))
-                    .action(prov.register((v, a) -> {}, opts)).width(280).build());
+                    .action(prov.register((v, a) -> {}, opts)).width(350).build());
         }
 
         for (int i = 0; i < shop.getProductSlotsCount(); i++) {
             TraderShop.SlotData data = slots.get(i);
             if (data == null) continue;
             final int idx = i;
+            ShopItem si = data.getItem();
 
             if (data.isBought()) {
-                String rawName = stripColors(data.getItem().getName());
-                buttons.add(ActionButton.builder(
-                        Component.empty().decoration(TextDecoration.ITALIC, false)
-                                .append(Component.text("✗ ", NamedTextColor.DARK_RED))
-                                .append(Component.text(rawName, NamedTextColor.DARK_RED)
-                                        .decorate(TextDecoration.BOLD))
-                                .append(Component.text(" — КУПЛЕНО", NamedTextColor.DARK_RED)))
-                        .action(prov.register((v, a) -> {}, opts)).width(280).build());
+                // ── Куплено: 3 серые кнопки ───────────────────────
+                String rawName = stripColors(si.getName());
+                Component soldName = Component.empty().decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("✗ ", NamedTextColor.DARK_RED))
+                        .append(Component.text(rawName, NamedTextColor.DARK_RED)
+                                .decorate(TextDecoration.BOLD))
+                        .append(Component.text("  —  куплено", NamedTextColor.DARK_GRAY));
+                Component soldBtn = Component.text("✗ Куплено", NamedTextColor.DARK_GRAY)
+                        .decoration(TextDecoration.ITALIC, false);
+
+                buttons.add(ActionButton.builder(soldName)
+                        .action(prov.register((v, a) -> {}, opts)).width(170).build());
+                buttons.add(ActionButton.builder(soldBtn)
+                        .action(prov.register((v, a) -> {}, opts)).width(85).build());
+                buttons.add(ActionButton.builder(soldBtn)
+                        .action(prov.register((v, a) -> {}, opts)).width(85).build());
+
             } else {
-                ShopItem si = data.getItem();
-                Component label = Component.empty().decoration(TextDecoration.ITALIC, false)
+                // ── Доступен: имя/цена + купить×1 + купить×? ─────
+
+                // Кнопка 1: название + цена (клик → карточка)
+                Component nameLabel = Component.empty().decoration(TextDecoration.ITALIC, false)
                         .append(Component.text("▶ ", NamedTextColor.GREEN))
                         .append(ColorUtil.parse(si.getName()).decorate(TextDecoration.BOLD))
                         .append(Component.text("  —  ", NamedTextColor.GRAY))
                         .append(Component.text(data.getPrice() + " " + plugin.getCurrencyName(),
                                 NamedTextColor.GOLD));
-
-                buttons.add(ActionButton.builder(label)
-                        .tooltip(Component.text("Нажми для просмотра товара", NamedTextColor.GRAY)
-                                .decoration(TextDecoration.ITALIC, false))
+                buttons.add(ActionButton.builder(nameLabel)
+                        .tooltip(buildItemTooltip(si, data.getPrice()))
                         .action(prov.register((v, a) -> {
                             if (!(a instanceof Player p)) return;
                             plugin.getServer().getScheduler().runTask(plugin,
                                     () -> openItemCard(p, shop, idx));
-                        }, opts)).width(280).build());
+                        }, opts)).width(170).build());
+
+                // Кнопка 2: Купить ×1
+                buttons.add(ActionButton.builder(
+                        Component.text("Купить ×1", NamedTextColor.GREEN)
+                                .decoration(TextDecoration.ITALIC, false)
+                                .decorate(TextDecoration.BOLD))
+                        .tooltip(Component.empty().decoration(TextDecoration.ITALIC, false)
+                                .append(Component.text(si.getAmount() + " шт.\n", NamedTextColor.GRAY))
+                                .append(Component.text("Цена: " + data.getPrice()
+                                        + " " + plugin.getCurrencyName(), NamedTextColor.GOLD)))
+                        .action(prov.register((v, a) -> {
+                            if (!(a instanceof Player p)) return;
+                            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                                shop.tryPurchase(p, idx, 1);
+                                open(p, shop);
+                            });
+                        }, opts)).width(85).build());
+
+                // Кнопка 3: Купить ×? (ввод в чат)
+                buttons.add(ActionButton.builder(
+                        Component.text("Купить ×?", NamedTextColor.AQUA)
+                                .decoration(TextDecoration.ITALIC, false)
+                                .decorate(TextDecoration.BOLD))
+                        .tooltip(Component.empty().decoration(TextDecoration.ITALIC, false)
+                                .append(Component.text("Введи количество в чат\n", NamedTextColor.GRAY))
+                                .append(Component.text("Цена за 1: " + data.getPrice()
+                                        + " " + plugin.getCurrencyName(), NamedTextColor.GOLD)))
+                        .action(prov.register((v, a) -> {
+                            if (!(a instanceof Player p)) return;
+                            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                                pendingBuys.put(p.getUniqueId(),
+                                        new PendingBuy(shop, idx, data.getPrice(), si.getAmount()));
+                                p.closeInventory();
+                                p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+                                p.sendMessage(ColorUtil.parse("&#FFAA00➤ §6Сколько раз купить §f"
+                                        + si.getName() + "§6?"));
+                                p.sendMessage(ColorUtil.parse("&#AAAAAA  1 покупка = §f"
+                                        + si.getAmount() + " §7шт. | Цена за 1: &#FFD700"
+                                        + data.getPrice() + " §7" + plugin.getCurrencyName()));
+                                p.sendMessage(ColorUtil.parse("&#888888  Введи число или §cотмена"));
+                                p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+                            });
+                        }, opts)).width(85).build());
             }
         }
 
@@ -180,8 +234,24 @@ public class TraderDialogMenu implements Listener {
                 .body(bodyList).canCloseWithEscape(true).pause(false)
                 .afterAction(DialogBase.DialogAfterAction.NONE).build();
 
+        // columns(3): [Название — Цена] [Купить ×1] [Купить ×?]
         player.showDialog(Dialog.create(f -> f.empty().base(base)
-                .type(prov.multiAction(buttons).exitAction(exitBtn).columns(1).build())));
+                .type(prov.multiAction(buttons).exitAction(exitBtn).columns(3).build())));
+    }
+
+    private Component buildItemTooltip(ShopItem si, int price) {
+        var b = Component.text().decoration(TextDecoration.ITALIC, false);
+        if (!si.getLore().isEmpty()) {
+            for (String line : si.getLore())
+                b.append(ColorUtil.parse(line)).append(Component.newline());
+            b.append(Component.newline());
+        }
+        b.append(Component.text("Цена: ", NamedTextColor.GRAY))
+         .append(Component.text(price + " " + plugin.getCurrencyName(), NamedTextColor.GOLD));
+        if (si.getAmount() > 1)
+            b.append(Component.newline())
+             .append(Component.text("Количество: " + si.getAmount() + " шт.", NamedTextColor.GRAY));
+        return b.build();
     }
 
     // ── Карточка конкретного товара ────────────────────────────────
