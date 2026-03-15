@@ -4,7 +4,6 @@ import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
 import io.papermc.paper.registry.data.dialog.DialogInstancesProvider;
-import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.text.Component;
@@ -27,6 +26,7 @@ import java.util.Map;
  * тёмный оверлей, заголовок, кнопки по центру, кнопка «Выход».
  * Использует Paper 1.21.8 Dialog API.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class TraderDialogMenu {
 
     private final SUDORUDialoges plugin;
