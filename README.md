@@ -3,7 +3,7 @@
 # ⚔️ SUDORUDialoges
 ### Диалоговая Торговая Система для Minecraft 1.21.x (Paper)
 
-[![Version](https://img.shields.io/badge/Версия-1.0.5-gold?style=for-the-badge)](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.5)
+[![Version](https://img.shields.io/badge/Версия-1.0.7-gold?style=for-the-badge)]([https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.7])
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen?style=for-the-badge&logo=minecraft)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
 [![Paper](https://img.shields.io/badge/API-Paper%201.21.8-blue?style=for-the-badge)](https://papermc.io)
