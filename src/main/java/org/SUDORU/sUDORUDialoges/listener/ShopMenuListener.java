@@ -50,13 +50,19 @@ public class ShopMenuListener implements Listener {
             return;
         }
 
-        // Кнопка «купить»
-        int slotIndex = shop.getBuySlotIndex(slot);
-        if (slotIndex >= 0) {
-            boolean success = shop.tryPurchase(player, slotIndex);
-            if (success) {
-                plugin.getServer().getScheduler().runTask(plugin, () -> shop.openFor(player));
-            }
+        // Кнопка «Купить ×1»
+        int buy1Index = shop.getBuy1SlotIndex(slot);
+        if (buy1Index >= 0) {
+            boolean success = shop.tryPurchase(player, buy1Index, 1);
+            if (success) plugin.getServer().getScheduler().runTask(plugin, () -> shop.openFor(player));
+            return;
+        }
+
+        // Кнопка «Купить ×5»
+        int buy5Index = shop.getBuy5SlotIndex(slot);
+        if (buy5Index >= 0) {
+            boolean success = shop.tryPurchase(player, buy5Index, 5);
+            if (success) plugin.getServer().getScheduler().runTask(plugin, () -> shop.openFor(player));
         }
     }
 

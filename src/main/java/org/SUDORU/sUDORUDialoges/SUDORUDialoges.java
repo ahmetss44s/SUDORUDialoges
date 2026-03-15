@@ -61,7 +61,7 @@ public final class SUDORUDialoges extends JavaPlugin {
         }
 
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.0.4  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.0.5  ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
