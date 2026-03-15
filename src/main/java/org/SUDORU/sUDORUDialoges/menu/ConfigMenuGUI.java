@@ -114,12 +114,16 @@ public class ConfigMenuGUI {
                 "",
                 "&#FFAA00▶ §eНажми"
         ));
-        inv.setItem(50, item(Material.BOOK,
-                "&#AAAAAA📄 §7Открыть config.yml",
-                "§7Все настройки хранятся в:",
-                "§f plugins/SUDORUDialoges/config.yml",
-                "",
-                "&#AAAAAA(только информация)"
+        inv.setItem(50, item(Material.REPEATER,
+                "&#FF5555⚠ §cЛимит закупки (×?)",
+                "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                "§7Макс. предметов за одну закупку",
+                "§7через кнопку §bКупить ×?",
+                "§7Текущий: §f" + plugin.getConfig().getInt("shop.max-purchase-amount", 1000),
+                "§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬",
+                "&#FFD700ЛКМ §e−100  §7|  §ePКМ §e+100",
+                "&#FFD700Shift+ЛКМ §e−10  §7|  §eShift+ПКМ §e+10",
+                "&#FFD700Средняя кнопка §e→ ввод вручную"
         ));
         inv.setItem(53, item(Material.RED_STAINED_GLASS_PANE, "§c✖ §cЗакрыть", "§7Закрыть меню."));
 

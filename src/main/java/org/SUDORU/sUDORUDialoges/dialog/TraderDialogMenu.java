@@ -88,6 +88,17 @@ public class TraderDialogMenu implements Listener {
             return;
         }
 
+        // Проверяем лимит
+        int maxItems = plugin.getMaxPurchaseAmount();
+        int totalItemsCheck = pending.amountPerBatch * qty;
+        if (totalItemsCheck > maxItems) {
+            int maxQty = maxItems / Math.max(1, pending.amountPerBatch);
+            player.sendMessage(ColorUtil.parse(
+                    "§c✗ Превышен лимит! §7Максимум §f" + maxItems +
+                    " §7предметов за раз §8(не более §f" + maxQty + " §8покупок)"));
+            player.sendMessage(ColorUtil.parse("&#888888  Введи число до §f" + maxQty + " §8или §cотмена"));
+            return;
+        }
         final int finalQty = qty;
         final int totalCost = pending.pricePerBatch * qty;
         final int totalItems = pending.amountPerBatch * qty;
@@ -193,6 +204,8 @@ public class TraderDialogMenu implements Listener {
                         }, opts)).width(85).build());
 
                 // Кнопка 3: Купить ×? (ввод в чат)
+                int maxItemsForBtn = plugin.getMaxPurchaseAmount();
+                int maxQtyForBtn   = maxItemsForBtn / Math.max(1, si.getAmount());
                 buttons.add(ActionButton.builder(
                         Component.text("Купить ×?", NamedTextColor.AQUA)
                                 .decoration(TextDecoration.ITALIC, false)
@@ -200,22 +213,28 @@ public class TraderDialogMenu implements Listener {
                         .tooltip(Component.empty().decoration(TextDecoration.ITALIC, false)
                                 .append(Component.text("Введи количество в чат\n", NamedTextColor.GRAY))
                                 .append(Component.text("Цена за 1: " + data.getPrice()
-                                        + " " + plugin.getCurrencyName(), NamedTextColor.GOLD)))
+                                        + " " + plugin.getCurrencyName() + "\n", NamedTextColor.GOLD))
+                                .append(Component.text("Лимит: " + maxQtyForBtn + " покупок ("
+                                        + maxItemsForBtn + " предм. макс.)", NamedTextColor.RED)))
                         .action(prov.register((v, a) -> {
                             if (!(a instanceof Player p)) return;
-                            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                pendingBuys.put(p.getUniqueId(),
-                                        new PendingBuy(shop, idx, data.getPrice(), si.getAmount()));
-                                p.closeInventory();
-                                p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-                                p.sendMessage(ColorUtil.parse("&#FFAA00➤ §6Сколько раз купить §f"
-                                        + si.getName() + "§6?"));
-                                p.sendMessage(ColorUtil.parse("&#AAAAAA  1 покупка = §f"
-                                        + si.getAmount() + " §7шт. | Цена за 1: &#FFD700"
-                                        + data.getPrice() + " §7" + plugin.getCurrencyName()));
-                                p.sendMessage(ColorUtil.parse("&#888888  Введи число или §cотмена"));
-                                p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
-                            });
+                        plugin.getServer().getScheduler().runTask(plugin, () -> {
+                            pendingBuys.put(p.getUniqueId(),
+                                    new PendingBuy(shop, idx, data.getPrice(), si.getAmount()));
+                            int maxItems = plugin.getMaxPurchaseAmount();
+                            int maxQty   = maxItems / Math.max(1, si.getAmount());
+                            p.closeInventory();
+                            p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+                            p.sendMessage(ColorUtil.parse("&#FFAA00➤ §6Сколько раз купить §f"
+                                    + si.getName() + "§6?"));
+                            p.sendMessage(ColorUtil.parse("&#AAAAAA  1 покупка = §f"
+                                    + si.getAmount() + " §7шт. | Цена за 1: &#FFD700"
+                                    + data.getPrice() + " §7" + plugin.getCurrencyName()));
+                            p.sendMessage(ColorUtil.parse("&#FF5555  Лимит: §f" + maxQty
+                                    + " §7покупок (§f" + maxItems + " §7предметов макс.)"));
+                            p.sendMessage(ColorUtil.parse("&#888888  Введи число или §cотмена"));
+                            p.sendMessage(ColorUtil.parse("§8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"));
+                        });
                         }, opts)).width(85).build());
             }
         }

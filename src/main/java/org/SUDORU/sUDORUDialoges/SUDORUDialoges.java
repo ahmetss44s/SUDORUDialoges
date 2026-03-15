@@ -62,7 +62,7 @@ public final class SUDORUDialoges extends JavaPlugin {
         }
 
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.0.9  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.0  ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
@@ -79,6 +79,11 @@ public final class SUDORUDialoges extends JavaPlugin {
     /** Название валюты из конфига */
     public String getCurrencyName() {
         return getConfig().getString("currency.item-name", "Изумруд");
+    }
+
+    /** Максимум предметов за одну закупку через кнопку ×? */
+    public int getMaxPurchaseAmount() {
+        return getConfig().getInt("shop.max-purchase-amount", 1000);
     }
 
     /** Количество валюты у игрока */

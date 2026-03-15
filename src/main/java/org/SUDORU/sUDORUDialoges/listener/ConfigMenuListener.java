@@ -79,6 +79,24 @@ public class ConfigMenuListener implements Listener {
                 return;
             }
 
+            // Лимит закупки (Купить ×?)
+            if (slot == 50) {
+                int cur = plugin.getConfig().getInt("shop.max-purchase-amount", 1000);
+                if (event.getClick() == ClickType.LEFT)              cur = Math.max(1, cur - 100);
+                else if (event.getClick() == ClickType.RIGHT)        cur += 100;
+                else if (event.getClick() == ClickType.SHIFT_LEFT)   cur = Math.max(1, cur - 10);
+                else if (event.getClick() == ClickType.SHIFT_RIGHT)  cur += 10;
+                else if (event.getClick() == ClickType.MIDDLE) {
+                    requestInput(player, "shop.max-purchase-amount", null, null, -1,
+                            "&#FF5555➤ §cВведи §fмакс. количество предметов §cза одну закупку §7(целое число):");
+                    return;
+                }
+                saveAndReload("shop.max-purchase-amount", String.valueOf(cur));
+                player.sendMessage(ColorUtil.parse("&#55FF55✔ §aЛимит закупки: §f" + cur + " §7предметов"));
+                gui.openMain(player);
+                return;
+            }
+
             // Клик по торговцу
             List<String> ids = new java.util.ArrayList<>(plugin.getTraderManager().getShopIds());
             int[] tSlots = {21,22,23,24,25,28,29,30,31,32,33,34};
@@ -423,7 +441,12 @@ public class ConfigMenuListener implements Listener {
     // ─── Утилиты сохранения ───────────────────────────────────────────
 
     private void saveAndReload(String path, String value) {
-        plugin.getConfig().set(path, value);
+        // Если значение числовое — сохранять как int
+        try {
+            plugin.getConfig().set(path, Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            plugin.getConfig().set(path, value);
+        }
         plugin.saveConfig();
         plugin.reloadConfig();
         plugin.getTraderManager().loadAll();
