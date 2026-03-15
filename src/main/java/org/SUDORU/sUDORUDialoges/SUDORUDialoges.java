@@ -4,6 +4,7 @@ import org.SUDORU.sUDORUDialoges.command.ConfigMenuCommand;
 import org.SUDORU.sUDORUDialoges.command.ReloadCommand;
 import org.SUDORU.sUDORUDialoges.command.ShopCommand;
 import org.SUDORU.sUDORUDialoges.command.TraderMenuCommand;
+import org.SUDORU.sUDORUDialoges.dialog.TraderDialogMenu;
 import org.SUDORU.sUDORUDialoges.listener.ConfigMenuListener;
 import org.SUDORU.sUDORUDialoges.listener.MenuEditorListener;
 import org.SUDORU.sUDORUDialoges.listener.ShopMenuListener;
@@ -23,6 +24,7 @@ public final class SUDORUDialoges extends JavaPlugin {
     private TraderManager traderManager;
     private TraderMenuGUI traderMenuGUI;
     private ConfigMenuGUI configMenuGUI;
+    private TraderDialogMenu traderDialogMenu;
 
     @Override
     public void onEnable() {
@@ -35,6 +37,7 @@ public final class SUDORUDialoges extends JavaPlugin {
 
         traderMenuGUI = new TraderMenuGUI(this);
         configMenuGUI = new ConfigMenuGUI(this);
+        traderDialogMenu = new TraderDialogMenu(this);
 
         // ── Команды ──
         ShopCommand shopCmd = new ShopCommand(this);
@@ -125,4 +128,5 @@ public final class SUDORUDialoges extends JavaPlugin {
     public TraderManager getTraderManager() { return traderManager; }
     @SuppressWarnings("unused") public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
     @SuppressWarnings("unused") public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
+    public TraderDialogMenu getTraderDialogMenu() { return traderDialogMenu; }
 }

@@ -63,7 +63,8 @@ public class ShopCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        shop.openFor(player);
+        // Открываем диалоговое меню нового стиля
+        plugin.getTraderDialogMenu().open(player, shop);
         return true;
     }
 

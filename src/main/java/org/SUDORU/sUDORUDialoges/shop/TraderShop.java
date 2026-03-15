@@ -325,6 +325,10 @@ public class TraderShop {
     }
 
     public TraderConfig getConfig() { return config; }
+    /** Возвращает текущий ассортимент (slotIndex → SlotData) */
+    public Map<Integer, SlotData> getActiveSlots() { return Collections.unmodifiableMap(activeSlots); }
+    /** Количество слотов товаров */
+    public int getProductSlotsCount() { return PRODUCT_SLOTS.length; }
 
     // ─── Внутренний класс данных слота ───────────────────────────────
 
