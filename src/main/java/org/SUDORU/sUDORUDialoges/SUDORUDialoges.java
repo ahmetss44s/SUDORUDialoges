@@ -15,6 +15,7 @@ import org.SUDORU.sUDORUDialoges.shop.TraderManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -62,7 +63,7 @@ public final class SUDORUDialoges extends JavaPlugin {
         }
 
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.0  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.1  ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
@@ -86,13 +87,18 @@ public final class SUDORUDialoges extends JavaPlugin {
         return getConfig().getInt("shop.max-purchase-amount", 1000);
     }
 
-    /** Количество валюты у игрока */
+    /** Количество валюты у игрока (инвентарь + внутри шалкеров) */
     public int getCurrencyAmount(Player player) {
         if ("ITEM".equalsIgnoreCase(getConfig().getString("currency.type", "ITEM"))) {
             Material mat = getCurrencyMaterial();
             int count = 0;
             for (ItemStack stack : player.getInventory().getContents()) {
-                if (stack != null && stack.getType() == mat) count += stack.getAmount();
+                if (stack == null) continue;
+                if (stack.getType() == mat) {
+                    count += stack.getAmount();
+                } else if (isShulkerBox(stack.getType())) {
+                    count += getAmountFromShulker(stack, mat);
+                }
             }
             return count;
         }
@@ -101,6 +107,7 @@ public final class SUDORUDialoges extends JavaPlugin {
 
     /**
      * Снимает у игрока нужное количество валюты.
+     * Сначала берёт из инвентаря напрямую, потом — из шалкеров (не удаляя шалкеры).
      * Возвращает false, если недостаточно.
      */
     public boolean takeCurrency(Player player, int amount) {
@@ -110,23 +117,87 @@ public final class SUDORUDialoges extends JavaPlugin {
             int toRemove = amount;
             org.bukkit.inventory.Inventory inv = player.getInventory();
             ItemStack[] contents = inv.getContents();
+
+            // 1. Сначала берём из обычного инвентаря
             for (int i = 0; i < contents.length && toRemove > 0; i++) {
                 ItemStack stack = contents[i];
                 if (stack != null && stack.getType() == mat) {
                     int take = Math.min(stack.getAmount(), toRemove);
                     toRemove -= take;
                     if (take >= stack.getAmount()) {
-                        inv.setItem(i, null); // полностью убрать стак
+                        inv.setItem(i, null);
                     } else {
                         stack.setAmount(stack.getAmount() - take);
                         inv.setItem(i, stack);
                     }
                 }
             }
+
+            // 2. Если не хватило — добираем из шалкеров
+            for (int i = 0; i < contents.length && toRemove > 0; i++) {
+                ItemStack shulker = inv.getItem(i);
+                if (shulker != null && isShulkerBox(shulker.getType())) {
+                    toRemove = takeFromShulker(shulker, mat, toRemove);
+                    inv.setItem(i, shulker); // записать модифицированный шалкер обратно
+                }
+            }
+
             player.updateInventory();
             return true;
         }
         return false;
+    }
+
+    // ─── Шалкер-утилиты ──────────────────────────────────────────
+
+    /** Проверяет, является ли материал шалкером любого цвета */
+    private boolean isShulkerBox(Material mat) {
+        return mat.name().endsWith("SHULKER_BOX");
+    }
+
+    /** Считает кол-во нужного материала внутри шалкера */
+    private int getAmountFromShulker(ItemStack shulker, Material target) {
+        ItemMeta meta = shulker.getItemMeta();
+        if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) return 0;
+        if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb)) return 0;
+        int count = 0;
+        for (ItemStack item : sb.getInventory().getContents()) {
+            if (item != null && item.getType() == target) count += item.getAmount();
+        }
+        return count;
+    }
+
+    /**
+     * Берёт нужное кол-во материала из шалкера.
+     * Изменяет ItemStack shulker на месте (meta + BlockState).
+     * @return оставшееся кол-во для снятия (0 если хватило)
+     */
+    private int takeFromShulker(ItemStack shulker, Material target, int toRemove) {
+        ItemMeta meta = shulker.getItemMeta();
+        if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) return toRemove;
+        if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb)) return toRemove;
+
+        org.bukkit.inventory.Inventory shulkerInv = sb.getInventory();
+        ItemStack[] contents = shulkerInv.getContents();
+
+        for (int i = 0; i < contents.length && toRemove > 0; i++) {
+            ItemStack item = contents[i];
+            if (item != null && item.getType() == target) {
+                int take = Math.min(item.getAmount(), toRemove);
+                toRemove -= take;
+                if (take >= item.getAmount()) {
+                    shulkerInv.setItem(i, null);
+                } else {
+                    item.setAmount(item.getAmount() - take);
+                    shulkerInv.setItem(i, item);
+                }
+            }
+        }
+
+        // Сохраняем изменённое состояние шалкера обратно в ItemStack
+        bsm.setBlockState(sb);
+        shulker.setItemMeta(bsm);
+        return toRemove;
     }
 
     private Material getCurrencyMaterial() {
