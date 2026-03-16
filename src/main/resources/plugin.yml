@@ -1,5 +1,5 @@
 name: SUDORUDialoges
-version: '1.1.1'
+version: '1.1.2'
 main: org.SUDORU.sUDORUDialoges.SUDORUDialoges
 api-version: '1.21'
 description: "Диалоговая торговая система SUDORU"
@@ -36,4 +36,4 @@ permissions:
     default: op
   sudoru.trader.bypass:
     description: "Обход ограничений (бесплатная покупка)"
-    default: op
+    default: false

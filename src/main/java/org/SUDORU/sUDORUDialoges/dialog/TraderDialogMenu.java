@@ -116,6 +116,21 @@ public class TraderDialogMenu implements Listener {
         });
     }
 
+    // ── Запуск чат-покупки ───────────────────────────────────────
+
+    public void startChatPurchase(Player player, TraderShop shop, int slotIndex) {
+        TraderShop.SlotData data = shop.getActiveSlots().get(slotIndex);
+        if (data == null || data.isBought()) return;
+
+        ShopItem si = data.getItem();
+        pendingBuys.put(player.getUniqueId(), new PendingBuy(shop, slotIndex, data.getPrice(), si.getAmount()));
+
+        player.closeInventory();
+        player.sendMessage(ColorUtil.parse("&#55FF55✎ §aВведите количество покупок (раз):"));
+        player.sendMessage(ColorUtil.parse("&#AAAAAA(Цена за 1 раз: &#FFD700" + data.getPrice() + " §7" + plugin.getCurrencyName() + ")"));
+        player.sendMessage(ColorUtil.parse("&#AAAAAA(Напишите число или 'отмена')"));
+    }
+
     // ── Главный список товаров ─────────────────────────────────────
 
     /** Открыть главный список товаров торговца */
@@ -432,3 +447,4 @@ public class TraderDialogMenu implements Listener {
                 .replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
     }
 }
+

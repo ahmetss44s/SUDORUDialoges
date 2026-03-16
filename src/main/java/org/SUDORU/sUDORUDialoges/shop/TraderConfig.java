@@ -24,8 +24,8 @@ public class TraderConfig {
         this.description = description;
         this.iconMaterial = iconMaterial;
         this.refreshSeconds = refreshSeconds;
-        this.minItems = Math.max(5, Math.min(8, minItems));
-        this.maxItems = Math.max(this.minItems, Math.min(8, maxItems));
+        this.minItems = Math.max(1, Math.min(6, minItems));
+        this.maxItems = Math.max(this.minItems, Math.min(6, maxItems));
         this.items = items;
     }
 

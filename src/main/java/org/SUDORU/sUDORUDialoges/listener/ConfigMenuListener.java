@@ -185,7 +185,7 @@ public class ConfigMenuListener implements Listener {
             // min-items
             if (slot == 23) {
                 int cur = plugin.getConfig().getInt("traders." + traderId + ".min-items", 5);
-                int max = plugin.getConfig().getInt("traders." + traderId + ".max-items", 8);
+                int max = plugin.getConfig().getInt("traders." + traderId + ".max-items", 6);
                 if (event.getClick() == ClickType.LEFT)  cur = Math.max(1, cur - 1);
                 else                                     cur = Math.min(max, cur + 1);
                 saveTraderField(traderId, "min-items", String.valueOf(cur));
@@ -194,10 +194,10 @@ public class ConfigMenuListener implements Listener {
             }
             // max-items
             if (slot == 24) {
-                int cur = plugin.getConfig().getInt("traders." + traderId + ".max-items", 8);
+                int cur = plugin.getConfig().getInt("traders." + traderId + ".max-items", 6);
                 int min = plugin.getConfig().getInt("traders." + traderId + ".min-items", 5);
                 if (event.getClick() == ClickType.LEFT)  cur = Math.max(min, cur - 1);
-                else                                     cur = Math.min(8, cur + 1);
+                else                                     cur = Math.min(6, cur + 1);
                 saveTraderField(traderId, "max-items", String.valueOf(cur));
                 reloadAndReopenTrader(player, traderId);
                 return;
@@ -537,8 +537,16 @@ public class ConfigMenuListener implements Listener {
         plugin.reloadConfig();
         plugin.getTraderManager().loadAll();
         int newIdx = rawList.size() - 1;
-        player.sendMessage(ColorUtil.parse("&#55FF55✔ §aДобавлен предмет §f" + material + " §7(#" + newIdx + ")"));
-        gui.openItemEdit(player, traderId, newIdx);
+        player.sendMessage(ColorUtil.parse("&#55FF55✔ §aДобавлен предмет §f" + material + " §7(#" + (newIdx + 1) + ")"));
+
+        // Проверяем, загрузился ли предмет
+        var shop = plugin.getTraderManager().getShop(traderId);
+        if (shop != null && newIdx < shop.getConfig().getItems().size()) {
+            gui.openItemEdit(player, traderId, newIdx);
+        } else {
+            // Если что-то пошло не так — открываем список
+            gui.openItems(player, traderId, newIdx / 21);
+        }
     }
 
     private void createTrader(Player player, String id) {
@@ -549,7 +557,7 @@ public class ConfigMenuListener implements Listener {
         cfg.set(base + ".icon-material", "CHEST");
         cfg.set(base + ".refresh-seconds", 300);
         cfg.set(base + ".min-items", 5);
-        cfg.set(base + ".max-items", 8);
+        cfg.set(base + ".max-items", 6);
         Map<String, Object> defItem = new LinkedHashMap<>();
         defItem.put("material", "STONE");
         defItem.put("name", "&7Камень");

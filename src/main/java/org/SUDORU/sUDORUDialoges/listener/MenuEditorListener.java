@@ -117,7 +117,7 @@ public class MenuEditorListener implements Listener {
                 if (event.getClick() == ClickType.LEFT)           min = Math.max(1, min - 1);
                 else if (event.getClick() == ClickType.RIGHT)     min = Math.min(max, min + 1);
                 else if (event.getClick() == ClickType.SHIFT_LEFT) max = Math.max(min, max - 1);
-                else if (event.getClick() == ClickType.SHIFT_RIGHT) max = Math.min(8, max + 1);
+                else if (event.getClick() == ClickType.SHIFT_RIGHT) max = Math.min(6, max + 1);
                 saveTraderValue(traderId, "min-items", String.valueOf(min));
                 saveTraderValue(traderId, "max-items", String.valueOf(max));
                 reloadAndReopen(player, traderId);
@@ -269,7 +269,7 @@ public class MenuEditorListener implements Listener {
         cfg.set(base + ".icon-material", "CHEST");
         cfg.set(base + ".refresh-seconds", 300);
         cfg.set(base + ".min-items", 5);
-        cfg.set(base + ".max-items", 8);
+        cfg.set(base + ".max-items", 6);
         // Добавляем дефолтный предмет чтобы торговец не был пустым
         java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
         java.util.Map<String, Object> defItem = new java.util.LinkedHashMap<>();

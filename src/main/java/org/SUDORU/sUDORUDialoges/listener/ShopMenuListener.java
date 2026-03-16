@@ -51,18 +51,17 @@ public class ShopMenuListener implements Listener {
         }
 
         // Кнопка «Купить ×1»
-        int buy1Index = shop.getBuy1SlotIndex(slot);
+        int buy1Index = shop.getItemIndexByBuy1(slot);
         if (buy1Index >= 0) {
             boolean success = shop.tryPurchase(player, buy1Index, 1);
             if (success) plugin.getServer().getScheduler().runTask(plugin, () -> shop.openFor(player));
             return;
         }
 
-        // Кнопка «Купить ×5»
-        int buy5Index = shop.getBuy5SlotIndex(slot);
-        if (buy5Index >= 0) {
-            boolean success = shop.tryPurchase(player, buy5Index, 5);
-            if (success) plugin.getServer().getScheduler().runTask(plugin, () -> shop.openFor(player));
+        // Кнопка «Купить несколько»
+        int buyNIndex = shop.getItemIndexByBuyN(slot);
+        if (buyNIndex >= 0) {
+            plugin.getTraderDialogMenu().startChatPurchase(player, shop, buyNIndex);
         }
     }
 
