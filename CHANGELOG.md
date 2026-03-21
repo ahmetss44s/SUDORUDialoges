@@ -1,5 +1,28 @@
 # Changelog
 
+## [v1.1.3] — 2026-03-21
+
+### 💰 Смена валюты: Scoreboard Coins (Breaking Change)
+- **Убрана item-валюта** (изумруды + шалкеры) из всей логики покупки.
+- Теперь валюта — Scoreboard-объект `Coins` (тип `dummy`), создаваемый датапаком.
+- `getCurrencyAmount()` и `takeCurrency()` обращаются к `Bukkit.getScoreboardManager().getMainScoreboard()`.
+- Если датапак не загружен и `Coins` objective не существует — плагин логирует предупреждение.
+- `config.yml`: секция `currency.type/item-material` закомментирована; осталась только `currency.name: "Coins"`.
+
+### ✨ Новое: `/sellshop` — диалог продажи
+- **`SellShopDialog`** (Paper Dialog API) — аналог покупки, но для продажи.
+  - Сканирует инвентарь на предметы с PDC-ключом `sudoru:shop_price`.
+  - Показывает список с ценой: `[Название ×кол-во → +Coins] [Продать]`.
+  - При продаже: убирает стак из инвентаря, начисляет `amount × pricePerItem` Coins.
+- **`SellShopCommand`** `/sellshop [open]` — пермишн `sudoru.sellshop` (default: true).
+  - Вызывается напрямую или из датапака: `execute as @p run sellshop open`.
+- **`TraderShop.buildRewardItem()`** теперь тегирует купленные предметы PDC `sudoru:shop_price` (Coins за 1 шт.).
+
+### 🗑️ Удалено
+- `getCurrencyMaterial()`, `isShulkerBox()`, `getAmountFromShulker()`, `takeFromShulker()` из `SUDORUDialoges.java`.
+
+---
+
 ## [v1.0.8] — 2026-03-15
 
 ### ✨ Новое
