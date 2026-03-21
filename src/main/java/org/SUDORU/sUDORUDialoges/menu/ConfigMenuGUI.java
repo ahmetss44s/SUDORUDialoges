@@ -28,6 +28,7 @@ public class ConfigMenuGUI {
     public static final String T_TRADER    = "§0§1§r§0§1§r§0§1§r §6☰ Торговец: ";
     public static final String T_ITEMS     = "§0§1§r§0§1§r§0§1§r §e📦 Предметы: ";
     public static final String T_ITEM_EDIT = "§0§1§r§0§1§r§0§1§r §a✎ Предмет #";
+    public static final String T_SYNC      = "\u00a70\u00a71\u00a7r\u00a70\u00a71\u00a7r\u00a70\u00a71\u00a7r \u00a7d\u27f3 Datapack Sync";
 
     private final SUDORUDialoges plugin;
     private final Map<UUID, ConfigState> states = new HashMap<>();
@@ -528,13 +529,68 @@ public class ConfigMenuGUI {
         player.openInventory(inv);
     }
 
-    // ════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    //  СТРАНИЦА DATAPACK SYNC
+    // ═══════════════════════════════════════════════════════════
+    @SuppressWarnings("unused") public void openSync(Player player) {
+        states.put(player.getUniqueId(), new ConfigState(ConfigPage.SYNC, null, -1));
+        Inventory inv = Bukkit.createInventory(null, 54, ColorUtil.parse(T_SYNC));
+        fill(inv, Material.BLACK_STAINED_GLASS_PANE);
+        boolean autoSync = plugin.getConfig().getBoolean("datapack.auto-sync", true);
+        String globalLabel = plugin.getConfig().getString("datapack.dialog-label", "shop");
+        inv.setItem(4, item(Material.COMPARATOR,
+                "\u00a7d\u00a7l\u27f3 Datapack Sync",
+                "\u00a78\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac\u25ac",
+                "\u00a77Plugin \u2192 storage api-shop:config shop_data",
+                "\u00a77PDC-\u043a\u043b\u044e\u0447: \u00a7f\"sudorudialogs:shop_price\"",
+                "\u00a77\u0410\u0432\u0442\u043e-\u0441\u0438\u043d\u043a: " + (autoSync ? "\u00a7a\u0412\u041a\u041b" : "\u00a7c\u0412\u042b\u041a\u041b"),
+                "\u00a77Dialog-label: \u00a7f" + globalLabel
+        ));
+        ItemStack sep = item(Material.GRAY_STAINED_GLASS_PANE, "\u00a78 ");
+        for (int s : new int[]{9,10,11,12,13,14,15,16,17}) inv.setItem(s, sep);
+        inv.setItem(19, item(Material.LIME_STAINED_GLASS_PANE,
+                "&#55FF55\u27f3 \u00a7aSync All \u0441\u0435\u0439\u0447\u0430\u0441",
+                "\u00a77\u041f\u0443\u0448\u0438\u0442 \u0432\u0441\u0435\u0445 \u0442\u043e\u0440\u0433\u043e\u0432\u0446\u0435\u0432 \u0432 storage.", "",
+                "&#55FF55\u25b6 \u00a7a\u041d\u0430\u0436\u043c\u0438"));
+        inv.setItem(21, item(autoSync ? Material.LIME_DYE : Material.GRAY_DYE,
+                "&#FFFF55\u00a7e\u0410\u0432\u0442\u043e-\u0441\u0438\u043d\u043a: " + (autoSync ? "&#55FF55\u00a7a\u0412\u041a\u041b" : "&#FF5555\u00a7c\u0412\u042b\u041a\u041b"),
+                "\u00a77\u0421\u0438\u043d\u043a\u0430\u0442\u044c \u043f\u0440\u0438 /traderreload \u0438 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0438 \u0432 GUI.", "",
+                "&#FFFF55\u25b6 \u00a7e\u041d\u0430\u0436\u043c\u0438 \u0434\u043b\u044f \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f"));
+        inv.setItem(23, item(Material.KNOWLEDGE_BOOK,
+                "&#DD55FF\u00a7d\u0413\u043b\u043e\u0431\u0430\u043b\u044c\u043d\u044b\u0439 dialog-label",
+                "\u00a77\u0422\u0435\u043a\u0443\u0449\u0438\u0439: \u00a7f" + globalLabel, "",
+                "&#DD55FF\u25b6 \u00a7d\u041d\u0430\u0436\u043c\u0438 \u2014 \u0432\u0432\u0435\u0434\u0438 \u0432 \u0447\u0430\u0442"));
+        List<String> ids = new ArrayList<>(plugin.getTraderManager().getShopIds());
+        int[] tSlots = {28,29,30,31,32,33,34,37,38,39,40,41};
+        for (int i = 0; i < ids.size() && i < tSlots.length; i++) {
+            String id = ids.get(i);
+            TraderShop shop = plugin.getTraderManager().getShop(id);
+            if (shop == null) continue;
+            int shopId = plugin.getSyncService().getShopId(id);
+            Long ts = plugin.getSyncService().getLastSyncTime(id);
+            String tsStr = ts != null
+                ? java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
+                  .format(java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(ts), java.time.ZoneId.systemDefault()))
+                : "\u00a7c\u043d\u0435 \u0441\u0438\u043d\u043a\u0430\u043b\u0441\u044f";
+            String lbl = plugin.getConfig().getString("traders." + id + ".dialog-label", globalLabel);
+            inv.setItem(tSlots[i], item(mat(shop.getConfig().getIconMaterial()),
+                    ColorUtil.toColoredString(shop.getConfig().getDisplayName()),
+                    "\u00a77ID: \u00a7f" + id,
+                    "\u00a77ShopID: \u00a7b" + shopId + "  dialog-label: \u00a7f" + lbl,
+                    "\u00a77\u0421\u0438\u043d\u043a: \u00a7f" + tsStr + "  \u0421\u043b\u043e\u0442\u043e\u0432: \u00a7a" + shop.getActiveSlots().size(), "",
+                    "&#55FF55\u25b6 \u00a7a\u041d\u0430\u0436\u043c\u0438 \u2014 Push \u0441\u0435\u0439\u0447\u0430\u0441"));
+        }
+        inv.setItem(45, item(Material.ARROW, "\u00a77\u25c4 \u00a77\u041d\u0430\u0437\u0430\u0434", "\u00a77\u0413\u043b\u0430\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e."));
+        inv.setItem(53, item(Material.RED_STAINED_GLASS_PANE, "\u00a7c\u2716 \u00a7c\u0417\u0430\u043a\u0440\u044b\u0442\u044c", ""));
+        player.openInventory(inv);
+    }    // ════════════════════════════════════════════════════════════
     //  ОПРЕДЕЛЕНИЕ МЕНЮ ПО ЗАГОЛОВКУ
     // ════════════════════════════════════════════════════════════
     @SuppressWarnings("unused") public static boolean isMain(Component c)     { return plain(c).equals(plain(ColorUtil.parse(T_MAIN))); }
     @SuppressWarnings("unused") public static boolean isCurrency(Component c) { return plain(c).equals(plain(ColorUtil.parse(T_CURRENCY))); }
     @SuppressWarnings("unused") public static boolean isTrader(Component c)   { return plain(c).startsWith(plain(ColorUtil.parse(T_TRADER))); }
     @SuppressWarnings("unused") public static boolean isItems(Component c)    { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEMS))); }
+    @SuppressWarnings("unused") public static boolean isSync(Component c)     { return plain(c).equals(plain(ColorUtil.parse(T_SYNC))); }
     @SuppressWarnings("unused") public static boolean isItemEdit(Component c) { return plain(c).startsWith(plain(ColorUtil.parse(T_ITEM_EDIT))); }
 
     /** Извлекает traderId из заголовка «☰ Предметы: <id>» */
@@ -603,7 +659,7 @@ public class ConfigMenuGUI {
     // ════════════════════════════════════════════════════════════
     //  СОСТОЯНИЕ ИГРОКА
     // ════════════════════════════════════════════════════════════
-    public enum ConfigPage { MAIN, CURRENCY, TRADER, ITEMS, ITEM_EDIT }
+    public enum ConfigPage { MAIN, CURRENCY, TRADER, ITEMS, ITEM_EDIT, SYNC }
 
     public static class ConfigState {
         public final ConfigPage page;

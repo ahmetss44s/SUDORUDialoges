@@ -3,6 +3,7 @@ package org.SUDORU.sUDORUDialoges.listener;
 import net.kyori.adventure.text.Component;
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
 import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
+import org.SUDORU.sUDORUDialoges.shop.TraderShop;
 import org.SUDORU.sUDORUDialoges.util.ColorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -40,7 +41,7 @@ public class ConfigMenuListener implements Listener {
         Component t = event.getView().title();
         if (ConfigMenuGUI.isMain(t) || ConfigMenuGUI.isCurrency(t)
                 || ConfigMenuGUI.isTrader(t) || ConfigMenuGUI.isItems(t)
-                || ConfigMenuGUI.isItemEdit(t)) {
+                || ConfigMenuGUI.isItemEdit(t) || ConfigMenuGUI.isSync(t)) {
             event.setCancelled(true);
         }
     }
@@ -62,6 +63,9 @@ public class ConfigMenuListener implements Listener {
 
             // Кнопка валюты
             if (slot == 19) { gui.openCurrency(player); return; }
+
+            // Кнопка Datapack Sync
+            if (slot == 47) { gui.openSync(player); return; }
 
             // Кнопка перезагрузки
             if (slot == 48) {
@@ -202,6 +206,14 @@ public class ConfigMenuListener implements Listener {
                 reloadAndReopenTrader(player, traderId);
                 return;
             }
+            // dialog-label (datapack)
+            if (slot == 25) {
+                requestInput(player, "dialog-label", traderId, "trader-field", -1,
+                        "&#DD55FF➤ §dВведи §fdialog-label §dдля датапака §7(пример: shop, village_shop):");
+                return;
+            }
+            // ShopID info → открыть Sync меню
+            if (slot == 27) { gui.openSync(player); return; }
             // Предметы
             if (slot == 28) { gui.openItems(player, traderId, 0); return; }
             // Обновить ассортимент
@@ -221,6 +233,57 @@ public class ConfigMenuListener implements Listener {
                 player.sendMessage(ColorUtil.parse("§c✖ Торговец §f'" + traderId + "' §cудалён."));
                 gui.openMain(player);
                 return;
+            }
+        }
+
+        // ────────── СТРАНИЦА DATAPACK SYNC ────────────────────────────
+        if (ConfigMenuGUI.isSync(title)) {
+            event.setCancelled(true);
+            if (slot >= topSize) return;
+
+            if (slot == 53) { player.closeInventory(); return; }
+            if (slot == 45) { gui.openMain(player); return; }
+
+            // Sync All сейчас
+            if (slot == 19) {
+                plugin.getSyncService().syncAll();
+                player.sendMessage(ColorUtil.parse("&#55FF55✔ §aВсе торговцы синкнуты в датапак!"));
+                gui.openSync(player);
+                return;
+            }
+
+            // Авто-синк toggle
+            if (slot == 21) {
+                boolean cur = plugin.getConfig().getBoolean("datapack.auto-sync", true);
+                saveAndReload("datapack.auto-sync", String.valueOf(!cur));
+                player.sendMessage(ColorUtil.parse("&#55FF55✔ §aАвто-синк: "
+                        + (!cur ? "&#55FF55§aВКЛ" : "&#FF5555§cВЫКЛ")));
+                gui.openSync(player);
+                return;
+            }
+
+            // Глобальный dialog-label
+            if (slot == 23) {
+                requestInput(player, "datapack.dialog-label", null, "", -1,
+                        "&#DD55FF➤ §dВведи §fглобальный dialog-label §7(пример: shop):");
+                return;
+            }
+
+            // Клик по торговцу → Push конкретного торговца
+            List<String> ids = new java.util.ArrayList<>(plugin.getTraderManager().getShopIds());
+            int[] traderSlots = {28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41};
+            for (int i = 0; i < traderSlots.length && i < ids.size(); i++) {
+                if (traderSlots[i] == slot) {
+                    String id = ids.get(i);
+                    TraderShop shop = plugin.getTraderManager().getShop(id);
+                    if (shop != null) {
+                        plugin.getSyncService().syncShop(id, shop.getActiveSlots());
+                        player.sendMessage(ColorUtil.parse("&#55FF55✔ §a'" + id + "' синкнут → ShopID "
+                                + plugin.getSyncService().getShopId(id)));
+                    }
+                    gui.openSync(player);
+                    return;
+                }
             }
         }
 
@@ -580,6 +643,11 @@ public class ConfigMenuListener implements Listener {
     private void reloadAndReopenTrader(Player player, String traderId) {
         plugin.reloadConfig();
         plugin.getTraderManager().loadAll();
+        // Авто-синк при изменении настроек торговца
+        if (plugin.getConfig().getBoolean("datapack.auto-sync", true)) {
+            TraderShop shop = plugin.getTraderManager().getShop(traderId);
+            if (shop != null) plugin.getSyncService().syncShop(traderId, shop.getActiveSlots());
+        }
         gui.openTrader(player, traderId);
     }
 
@@ -596,6 +664,7 @@ public class ConfigMenuListener implements Listener {
             case TRADER    -> { if (state.traderId != null) gui.openTrader(player, state.traderId); }
             case ITEMS     -> { if (state.traderId != null) gui.openItems(player, state.traderId, 0); }
             case ITEM_EDIT -> { if (state.traderId != null) gui.openItemEdit(player, state.traderId, state.index); }
+            case SYNC      -> gui.openSync(player);
         }
     }
 

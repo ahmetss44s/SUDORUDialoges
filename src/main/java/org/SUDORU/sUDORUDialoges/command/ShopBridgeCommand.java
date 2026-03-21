@@ -1,6 +1,7 @@
 package org.SUDORU.sUDORUDialoges.command;
 
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
+import org.SUDORU.sUDORUDialoges.shop.TraderShop;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Связка datapack <-> plugin.
+ * РЎРІСЏР·РєР° datapack <-> plugin.
  *
  * /shopbridge open <traderId>
  * /shopbridge buy <value>
@@ -33,15 +34,15 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cЭту команду может использовать только игрок.");
+            sender.sendMessage("В§cР­С‚Сѓ РєРѕРјР°РЅРґСѓ РјРѕР¶РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ С‚РѕР»СЊРєРѕ РёРіСЂРѕРє.");
             return true;
         }
         if (!player.hasPermission("sudoru.trader.bridge")) {
-            player.sendMessage("§c✗ Нет прав на bridge-команду.");
+            player.sendMessage("В§cвњ— РќРµС‚ РїСЂР°РІ РЅР° bridge-РєРѕРјР°РЅРґСѓ.");
             return true;
         }
         if (args.length < 2) {
-            player.sendMessage("§7Использование: §f/shopbridge <open|buy|sell> ...");
+            player.sendMessage("В§7РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: В§f/shopbridge <open|buy|sell> ...");
             return true;
         }
 
@@ -51,26 +52,22 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
             case "buy" -> handleTrigger(player, "ShopBuyTrigger", args[1]);
             case "sell" -> handleTrigger(player, "ShopSellTrigger", args[1]);
             default -> {
-                player.sendMessage("§c✗ Неизвестный режим. Используй open/buy/sell.");
+                player.sendMessage("В§cвњ— РќРµРёР·РІРµСЃС‚РЅС‹Р№ СЂРµР¶РёРј. РСЃРїРѕР»СЊР·СѓР№ open/buy/sell.");
                 yield true;
             }
         };
     }
 
-    private boolean handleOpen(Player player, String traderId) {
-        if (plugin.getTraderManager().getShop(traderId) == null) {
+        private boolean handleOpen(Player player, String traderId) {
+        TraderShop shop = plugin.getTraderManager().getShop(traderId);
+        if (shop == null) {
             player.sendMessage("§c✗ Торговец '" + traderId + "' не найден.");
             return true;
         }
-
         player.getPersistentDataContainer().set(
-                plugin.getActiveTraderKey(),
-                PersistentDataType.STRING,
-                traderId
-        );
-
-        String cmd = "execute as " + player.getName() + " run function api-shop:dialog/shop/store_data";
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                plugin.getActiveTraderKey(), PersistentDataType.STRING, traderId);
+        plugin.getSyncService().syncShop(traderId, shop.getActiveSlots());
+        plugin.getSyncService().showDialog(player, shop);
         return true;
     }
 
@@ -79,14 +76,14 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
         try {
             value = Integer.parseInt(rawValue);
         } catch (NumberFormatException ex) {
-            player.sendMessage("§c✗ Значение должно быть числом.");
+            player.sendMessage("В§cвњ— Р—РЅР°С‡РµРЅРёРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ С‡РёСЃР»РѕРј.");
             return true;
         }
 
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Objective objective = scoreboard.getObjective(objectiveName);
         if (objective == null) {
-            player.sendMessage("§c✗ Objective '" + objectiveName + "' не найден. Датапак загружен?");
+            player.sendMessage("В§cвњ— Objective '" + objectiveName + "' РЅРµ РЅР°Р№РґРµРЅ. Р”Р°С‚Р°РїР°Рє Р·Р°РіСЂСѓР¶РµРЅ?");
             return true;
         }
 
@@ -106,3 +103,4 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
         return List.of();
     }
 }
+

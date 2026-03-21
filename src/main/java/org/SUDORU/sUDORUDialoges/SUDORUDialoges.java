@@ -16,6 +16,7 @@ import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
 import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
 import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
 import org.SUDORU.sUDORUDialoges.shop.TraderManager;
+import org.SUDORU.sUDORUDialoges.sync.DatapackSyncService;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -30,6 +31,7 @@ public final class SUDORUDialoges extends JavaPlugin {
     private ConfigMenuGUI configMenuGUI;
     private TraderDialogMenu traderDialogMenu;
     private SellShopDialog sellShopDialog;
+    private DatapackSyncService syncService;
     /** PDC-ключ для хранения цены продажи (Coins за 1 шт.) на купленных предметах */
     private NamespacedKey shopPriceKey;
     /** PDC-ключ: активный traderId для bridge-вызовов */
@@ -47,6 +49,8 @@ public final class SUDORUDialoges extends JavaPlugin {
         // -- Инициализация менеджера торговцев --
         traderManager = new TraderManager(this);
         traderManager.loadAll();
+        syncService = new DatapackSyncService(this);
+        Bukkit.getScheduler().runTaskLater(this, () -> syncService.syncAll(), 1L);
         traderMenuGUI = new TraderMenuGUI(this);
         configMenuGUI = new ConfigMenuGUI(this);
         traderDialogMenu = new TraderDialogMenu(this);
@@ -79,7 +83,7 @@ public final class SUDORUDialoges extends JavaPlugin {
             getLogger().info("PlaceholderAPI найден -- плейсхолдеры зарегистрированы.");
         }
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.4  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.5  ║");
         getLogger().info("║  Валюта: Scoreboard Coins            ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
@@ -148,6 +152,7 @@ public final class SUDORUDialoges extends JavaPlugin {
     public NamespacedKey getTraderNpcKey() { return traderNpcKey; }
     // --- Геттеры ---
     public TraderManager getTraderManager() { return traderManager; }
+    public DatapackSyncService getSyncService() { return syncService; }
     @SuppressWarnings("unused") public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
     @SuppressWarnings("unused") public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
     public TraderDialogMenu getTraderDialogMenu() { return traderDialogMenu; }
