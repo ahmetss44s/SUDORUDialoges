@@ -1,5 +1,5 @@
 name: SUDORUDialoges
-version: '1.1.2'
+version: '1.1.3'
 main: org.SUDORU.sUDORUDialoges.SUDORUDialoges
 api-version: '1.21'
 description: "Диалоговая торговая система SUDORU"
@@ -11,6 +11,10 @@ commands:
     description: "Открыть меню торговца"
     usage: "/trader [имя]"
     aliases: [trade, shop]
+  sellshop:
+    description: "Открыть меню продажи предметов (Coins)"
+    usage: "/sellshop [open]"
+    aliases: [sell, selltrade]
   tradermenu:
     description: "GUI-редактор торговцев (admin)"
     usage: "/tradermenu [id]"
@@ -27,6 +31,9 @@ commands:
 permissions:
   sudoru.trader:
     description: "Использовать команду /trader"
+    default: true
+  sudoru.sellshop:
+    description: "Использовать команду /sellshop (продажа предметов)"
     default: true
   sudoru.trader.admin:
     description: "Управлять торговцами через /tradermenu"

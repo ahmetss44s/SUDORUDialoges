@@ -1,9 +1,10 @@
 package org.SUDORU.sUDORUDialoges;
-
 import org.SUDORU.sUDORUDialoges.command.ConfigMenuCommand;
 import org.SUDORU.sUDORUDialoges.command.ReloadCommand;
+import org.SUDORU.sUDORUDialoges.command.SellShopCommand;
 import org.SUDORU.sUDORUDialoges.command.ShopCommand;
 import org.SUDORU.sUDORUDialoges.command.TraderMenuCommand;
+import org.SUDORU.sUDORUDialoges.dialog.SellShopDialog;
 import org.SUDORU.sUDORUDialoges.dialog.TraderDialogMenu;
 import org.SUDORU.sUDORUDialoges.listener.ConfigMenuListener;
 import org.SUDORU.sUDORUDialoges.listener.MenuEditorListener;
@@ -12,35 +13,36 @@ import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
 import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
 import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
 import org.SUDORU.sUDORUDialoges.shop.TraderManager;
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 import java.util.Objects;
-
 public final class SUDORUDialoges extends JavaPlugin {
-
     private TraderManager traderManager;
     private TraderMenuGUI traderMenuGUI;
     private ConfigMenuGUI configMenuGUI;
     private TraderDialogMenu traderDialogMenu;
-
+    private SellShopDialog sellShopDialog;
+    /** PDC-ключ для хранения цены продажи (Coins за 1 шт.) на купленных предметах */
+    private NamespacedKey shopPriceKey;
     @Override
     public void onEnable() {
-        // ── Сохраняем конфиг по умолчанию ──
+        // -- PDC-ключ для продажи --
+        shopPriceKey = new NamespacedKey(this, "shop_price");
+        // -- Сохраняем конфиг по умолчанию --
         saveDefaultConfig();
-
-        // ── Инициализация менеджера торговцев ──
+        // -- Инициализация менеджера торговцев --
         traderManager = new TraderManager(this);
         traderManager.loadAll();
-
         traderMenuGUI = new TraderMenuGUI(this);
         configMenuGUI = new ConfigMenuGUI(this);
         traderDialogMenu = new TraderDialogMenu(this);
-
-        // ── Команды ──
+        sellShopDialog = new SellShopDialog(this);
+        // -- Команды --
         ShopCommand shopCmd = new ShopCommand(this);
         Objects.requireNonNull(getCommand("trader")).setExecutor(shopCmd);
         Objects.requireNonNull(getCommand("trader")).setTabCompleter(shopCmd);
@@ -49,167 +51,89 @@ public final class SUDORUDialoges extends JavaPlugin {
         ConfigMenuCommand cfgCmd = new ConfigMenuCommand(this, configMenuGUI);
         Objects.requireNonNull(getCommand("traderconfig")).setExecutor(cfgCmd);
         Objects.requireNonNull(getCommand("traderconfig")).setTabCompleter(cfgCmd);
-
-        // ── Слушатели ──
+        SellShopCommand sellCmd = new SellShopCommand(this);
+        Objects.requireNonNull(getCommand("sellshop")).setExecutor(sellCmd);
+        Objects.requireNonNull(getCommand("sellshop")).setTabCompleter(sellCmd);
+        // -- Слушатели --
         getServer().getPluginManager().registerEvents(new ShopMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuEditorListener(this, traderMenuGUI), this);
         getServer().getPluginManager().registerEvents(new ConfigMenuListener(this, configMenuGUI), this);
-        getServer().getPluginManager().registerEvents(traderDialogMenu, this); // чат для ×N покупки
-
-        // ── PlaceholderAPI (опционально) ──
+        getServer().getPluginManager().registerEvents(traderDialogMenu, this);
+        // -- PlaceholderAPI (опционально) --
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TraderPlaceholder(this).register();
-            getLogger().info("PlaceholderAPI найден — плейсхолдеры зарегистрированы.");
+            getLogger().info("PlaceholderAPI найден -- плейсхолдеры зарегистрированы.");
         }
-
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.1  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.3  ║");
+        getLogger().info("║  Валюта: Scoreboard Coins            ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
     }
-
     @Override
     public void onDisable() {
         if (traderManager != null) traderManager.shutdown();
         getLogger().info("SUDORUDialoges выключен.");
     }
-
-    // ─── Валюта ──────────────────────────────────────────────────────
-
-    /** Название валюты из конфига */
+    // --- Валюта (Scoreboard Coins) ---
+    /** Название валюты для сообщений */
     public String getCurrencyName() {
-        return getConfig().getString("currency.item-name", "Изумруд");
+        return getConfig().getString("currency.name", "Coins");
     }
-
-    /** Максимум предметов за одну закупку через кнопку ×? */
+    /** Максимум предметов за одну закупку через кнопку x? */
     public int getMaxPurchaseAmount() {
         return getConfig().getInt("shop.max-purchase-amount", 1000);
     }
-
-    /** Количество валюты у игрока (инвентарь + внутри шалкеров) */
-    public int getCurrencyAmount(Player player) {
-        if ("ITEM".equalsIgnoreCase(getConfig().getString("currency.type", "ITEM"))) {
-            Material mat = getCurrencyMaterial();
-            int count = 0;
-            for (ItemStack stack : player.getInventory().getContents()) {
-                if (stack == null) continue;
-                if (stack.getType() == mat) {
-                    count += stack.getAmount();
-                } else if (isShulkerBox(stack.getType())) {
-                    count += getAmountFromShulker(stack, mat);
-                }
-            }
-            return count;
-        }
-        return 0;
-    }
-
     /**
-     * Снимает у игрока нужное количество валюты.
-     * Сначала берёт из инвентаря напрямую, потом — из шалкеров (не удаляя шалкеры).
-     * Возвращает false, если недостаточно.
+     * Возвращает баланс Coins из main scoreboard.
+     * Если objective "Coins" не найден -- возвращает 0.
+     */
+    public int getCurrencyAmount(Player player) {
+        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+        Objective obj = sb.getObjective("Coins");
+        if (obj == null) return 0;
+        Score score = obj.getScore(player.getName());
+        return score.getScore();
+    }
+    /**
+     * Снимает amount Coins с игрока.
+     * Возвращает false если не хватает или objective не найден.
      */
     public boolean takeCurrency(Player player, int amount) {
-        if ("ITEM".equalsIgnoreCase(getConfig().getString("currency.type", "ITEM"))) {
-            if (getCurrencyAmount(player) < amount) return false;
-            Material mat = getCurrencyMaterial();
-            int toRemove = amount;
-            org.bukkit.inventory.Inventory inv = player.getInventory();
-            ItemStack[] contents = inv.getContents();
-
-            // 1. Сначала берём из обычного инвентаря
-            for (int i = 0; i < contents.length && toRemove > 0; i++) {
-                ItemStack stack = contents[i];
-                if (stack != null && stack.getType() == mat) {
-                    int take = Math.min(stack.getAmount(), toRemove);
-                    toRemove -= take;
-                    if (take >= stack.getAmount()) {
-                        inv.setItem(i, null);
-                    } else {
-                        stack.setAmount(stack.getAmount() - take);
-                        inv.setItem(i, stack);
-                    }
-                }
-            }
-
-            // 2. Если не хватило — добираем из шалкеров
-            for (int i = 0; i < contents.length && toRemove > 0; i++) {
-                ItemStack shulker = inv.getItem(i);
-                if (shulker != null && isShulkerBox(shulker.getType())) {
-                    toRemove = takeFromShulker(shulker, mat, toRemove);
-                    inv.setItem(i, shulker); // записать модифицированный шалкер обратно
-                }
-            }
-
-            player.updateInventory();
-            return true;
+        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+        Objective obj = sb.getObjective("Coins");
+        if (obj == null) {
+            player.sendMessage("§c✗ Scoreboard-объект 'Coins' не найден! Загрузите датапак.");
+            getLogger().warning("Scoreboard objective 'Coins' не найден! Датапак загружен?");
+            return false;
         }
-        return false;
+        Score score = obj.getScore(player.getName());
+        int balance = score.getScore();
+        if (balance < amount) return false;
+        score.setScore(balance - amount);
+        return true;
     }
-
-    // ─── Шалкер-утилиты ──────────────────────────────────────────
-
-    /** Проверяет, является ли материал шалкером любого цвета */
-    private boolean isShulkerBox(Material mat) {
-        return mat.name().endsWith("SHULKER_BOX");
-    }
-
-    /** Считает кол-во нужного материала внутри шалкера */
-    private int getAmountFromShulker(ItemStack shulker, Material target) {
-        ItemMeta meta = shulker.getItemMeta();
-        if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) return 0;
-        if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb)) return 0;
-        int count = 0;
-        for (ItemStack item : sb.getInventory().getContents()) {
-            if (item != null && item.getType() == target) count += item.getAmount();
-        }
-        return count;
-    }
-
     /**
-     * Берёт нужное кол-во материала из шалкера.
-     * Изменяет ItemStack shulker на месте (meta + BlockState).
-     * @return оставшееся кол-во для снятия (0 если хватило)
+     * Добавляет amount Coins игроку (при продаже).
      */
-    private int takeFromShulker(ItemStack shulker, Material target, int toRemove) {
-        ItemMeta meta = shulker.getItemMeta();
-        if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) return toRemove;
-        if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb)) return toRemove;
-
-        org.bukkit.inventory.Inventory shulkerInv = sb.getInventory();
-        ItemStack[] contents = shulkerInv.getContents();
-
-        for (int i = 0; i < contents.length && toRemove > 0; i++) {
-            ItemStack item = contents[i];
-            if (item != null && item.getType() == target) {
-                int take = Math.min(item.getAmount(), toRemove);
-                toRemove -= take;
-                if (take >= item.getAmount()) {
-                    shulkerInv.setItem(i, null);
-                } else {
-                    item.setAmount(item.getAmount() - take);
-                    shulkerInv.setItem(i, item);
-                }
-            }
+    public void addCurrency(Player player, int amount) {
+        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+        Objective obj = sb.getObjective("Coins");
+        if (obj == null) {
+            player.sendMessage("§c✗ Scoreboard-объект 'Coins' не найден! Загрузите датапак.");
+            getLogger().warning("Scoreboard objective 'Coins' не найден! Датапак загружен?");
+            return;
         }
-
-        // Сохраняем изменённое состояние шалкера обратно в ItemStack
-        bsm.setBlockState(sb);
-        shulker.setItemMeta(bsm);
-        return toRemove;
+        Score score = obj.getScore(player.getName());
+        score.setScore(score.getScore() + amount);
     }
-
-    private Material getCurrencyMaterial() {
-        String matName = getConfig().getString("currency.item-material", "EMERALD");
-        try { return Material.valueOf(matName.toUpperCase()); }
-        catch (IllegalArgumentException e) { return Material.EMERALD; }
-    }
-
-    // ─── Геттеры ─────────────────────────────────────────────────────
-
+    // --- PDC-ключ ---
+    public NamespacedKey getShopPriceKey() { return shopPriceKey; }
+    // --- Геттеры ---
     public TraderManager getTraderManager() { return traderManager; }
     @SuppressWarnings("unused") public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }
     @SuppressWarnings("unused") public ConfigMenuGUI getConfigMenuGUI() { return configMenuGUI; }
     public TraderDialogMenu getTraderDialogMenu() { return traderDialogMenu; }
+    public SellShopDialog getSellShopDialog() { return sellShopDialog; }
 }

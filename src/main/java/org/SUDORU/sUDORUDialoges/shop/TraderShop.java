@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
@@ -314,10 +315,10 @@ public class TraderShop {
     }
 
     /**
-     * Создаёт чистый ItemStack для выдачи игроку:
-     * только оригинальный лор из конфига, без пометок магазина.
+     * Создаёт чистый ItemStack для выдачи игроку.
+     * Тегирует предмет PDC-ключом shop_price (цена в Coins за 1 шт.) для системы продажи.
      */
-    private ItemStack buildRewardItem(ShopItem si) {
+    private ItemStack buildRewardItem(ShopItem si, int pricePerItem) {
         ItemStack stack = new ItemStack(si.getMaterial(), si.getAmount());
 
         // Зелья
@@ -331,6 +332,15 @@ public class TraderShop {
         }
 
         applyMeta(stack, si.getName(), si.getLore());
+
+        // Тег для системы продажи: Coins за 1 предмет
+        ItemMeta priceMeta = stack.getItemMeta();
+        if (priceMeta != null) {
+            priceMeta.getPersistentDataContainer()
+                    .set(plugin.getShopPriceKey(), PersistentDataType.INTEGER, pricePerItem);
+            stack.setItemMeta(priceMeta);
+        }
+
         return stack;
     }
 
@@ -384,11 +394,12 @@ public class TraderShop {
         }
 
         ShopItem si = data.getItem();
+        int pricePerItem = Math.max(1, data.getPrice() / Math.max(1, si.getAmount()));
         int remaining = si.getAmount() * quantity;
         int maxStack  = si.getMaterial().getMaxStackSize();
         while (remaining > 0) {
             int give = Math.min(remaining, maxStack);
-            ItemStack reward = buildRewardItem(si);
+            ItemStack reward = buildRewardItem(si, pricePerItem);
             reward.setAmount(give);
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(reward);
             if (!overflow.isEmpty()) {
