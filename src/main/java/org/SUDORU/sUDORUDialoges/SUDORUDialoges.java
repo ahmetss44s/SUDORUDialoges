@@ -84,7 +84,8 @@ public final class SUDORUDialoges extends JavaPlugin {
         }
         getLogger().info("╔══════════════════════════════════════╗");
         getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.5  ║");
-        getLogger().info("║  Валюта: Scoreboard Coins            ║");
+        getLogger().info("║  Валюта: " + String.format("%-28s", getCurrencyName()
+                + " [" + getCurrencyObjective() + "]") + "║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
@@ -94,36 +95,44 @@ public final class SUDORUDialoges extends JavaPlugin {
         if (traderManager != null) traderManager.shutdown();
         getLogger().info("SUDORUDialoges выключен.");
     }
-    // --- Валюта (Scoreboard Coins) ---
-    /** Название валюты для сообщений */
+    // --- Валюта (Scoreboard) ---
+    /** Отображаемое название валюты (из currency.name в config.yml) */
     public String getCurrencyName() {
         return getConfig().getString("currency.name", "Coins");
+    }
+    /**
+     * Название scoreboard-объекта, в котором хранится баланс игрока.
+     * Берётся из currency.objective в config.yml, по умолчанию "Coins".
+     */
+    public String getCurrencyObjective() {
+        return getConfig().getString("currency.objective", "Coins");
     }
     /** Максимум предметов за одну закупку через кнопку x? */
     public int getMaxPurchaseAmount() {
         return getConfig().getInt("shop.max-purchase-amount", 1000);
     }
     /**
-     * Возвращает баланс Coins из main scoreboard.
-     * Если objective "Coins" не найден -- возвращает 0.
+     * Возвращает баланс игрока из main scoreboard.
+     * Если objective не найден — возвращает 0.
      */
     public int getCurrencyAmount(Player player) {
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        Objective obj = sb.getObjective("Coins");
+        Objective obj = sb.getObjective(getCurrencyObjective());
         if (obj == null) return 0;
         Score score = obj.getScore(player.getName());
         return score.getScore();
     }
     /**
-     * Снимает amount Coins с игрока.
+     * Снимает amount валюты с игрока.
      * Возвращает false если не хватает или objective не найден.
      */
     public boolean takeCurrency(Player player, int amount) {
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        Objective obj = sb.getObjective("Coins");
+        String objName = getCurrencyObjective();
+        Objective obj = sb.getObjective(objName);
         if (obj == null) {
-            player.sendMessage("§c✗ Scoreboard-объект 'Coins' не найден! Загрузите датапак.");
-            getLogger().warning("Scoreboard objective 'Coins' не найден! Датапак загружен?");
+            player.sendMessage("§c✗ Scoreboard-объект '" + objName + "' не найден! Загрузите датапак.");
+            getLogger().warning("Scoreboard objective '" + objName + "' не найден! Датапак загружен?");
             return false;
         }
         Score score = obj.getScore(player.getName());
@@ -133,14 +142,15 @@ public final class SUDORUDialoges extends JavaPlugin {
         return true;
     }
     /**
-     * Добавляет amount Coins игроку (при продаже).
+     * Добавляет amount валюты игроку (при продаже).
      */
     public void addCurrency(Player player, int amount) {
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        Objective obj = sb.getObjective("Coins");
+        String objName = getCurrencyObjective();
+        Objective obj = sb.getObjective(objName);
         if (obj == null) {
-            player.sendMessage("§c✗ Scoreboard-объект 'Coins' не найден! Загрузите датапак.");
-            getLogger().warning("Scoreboard objective 'Coins' не найден! Датапак загружен?");
+            player.sendMessage("§c✗ Scoreboard-объект '" + objName + "' не найден! Загрузите датапак.");
+            getLogger().warning("Scoreboard objective '" + objName + "' не найден! Датапак загружен?");
             return;
         }
         Score score = obj.getScore(player.getName());

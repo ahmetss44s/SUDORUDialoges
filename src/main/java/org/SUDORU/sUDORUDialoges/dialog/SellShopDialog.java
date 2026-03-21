@@ -95,7 +95,7 @@ public class SellShopDialog {
                                 .append(Component.text("Выручка: +" + totalPrice
                                         + " " + plugin.getCurrencyName(), NamedTextColor.GREEN))
                                 .append(Component.newline())
-                                .append(Component.text("(" + pricePerItem + " Coins/шт.)",
+                                .append(Component.text("(" + pricePerItem + " " + plugin.getCurrencyName() + "/шт.)",
                                         NamedTextColor.DARK_GRAY)))
                         .action(prov.register((v, a) -> {
                             if (!(a instanceof Player p)) return;
