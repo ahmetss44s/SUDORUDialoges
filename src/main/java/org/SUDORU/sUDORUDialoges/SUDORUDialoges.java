@@ -83,7 +83,7 @@ public final class SUDORUDialoges extends JavaPlugin {
             getLogger().info("PlaceholderAPI найден -- плейсхолдеры зарегистрированы.");
         }
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.5  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.6  ║");
         getLogger().info("║  Валюта: " + String.format("%-28s", getCurrencyName()
                 + " [" + getCurrencyObjective() + "]") + "║");
         getLogger().info("║  Торговцев загружено: "
