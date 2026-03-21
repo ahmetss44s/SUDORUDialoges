@@ -3,12 +3,15 @@ import org.SUDORU.sUDORUDialoges.command.ConfigMenuCommand;
 import org.SUDORU.sUDORUDialoges.command.ReloadCommand;
 import org.SUDORU.sUDORUDialoges.command.SellShopCommand;
 import org.SUDORU.sUDORUDialoges.command.ShopCommand;
+import org.SUDORU.sUDORUDialoges.command.ShopBridgeCommand;
 import org.SUDORU.sUDORUDialoges.command.TraderMenuCommand;
+import org.SUDORU.sUDORUDialoges.command.VillageresCommand;
 import org.SUDORU.sUDORUDialoges.dialog.SellShopDialog;
 import org.SUDORU.sUDORUDialoges.dialog.TraderDialogMenu;
 import org.SUDORU.sUDORUDialoges.listener.ConfigMenuListener;
 import org.SUDORU.sUDORUDialoges.listener.MenuEditorListener;
 import org.SUDORU.sUDORUDialoges.listener.ShopMenuListener;
+import org.SUDORU.sUDORUDialoges.listener.VillageresListener;
 import org.SUDORU.sUDORUDialoges.menu.ConfigMenuGUI;
 import org.SUDORU.sUDORUDialoges.menu.TraderMenuGUI;
 import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
@@ -29,10 +32,16 @@ public final class SUDORUDialoges extends JavaPlugin {
     private SellShopDialog sellShopDialog;
     /** PDC-ключ для хранения цены продажи (Coins за 1 шт.) на купленных предметах */
     private NamespacedKey shopPriceKey;
+    /** PDC-ключ: активный traderId для bridge-вызовов */
+    private NamespacedKey activeTraderKey;
+    /** PDC-ключ у NPC Villageres: привязанный traderId */
+    private NamespacedKey traderNpcKey;
     @Override
     public void onEnable() {
         // -- PDC-ключ для продажи --
         shopPriceKey = new NamespacedKey(this, "shop_price");
+        activeTraderKey = new NamespacedKey(this, "active_trader_id");
+        traderNpcKey = new NamespacedKey(this, "trader_npc_id");
         // -- Сохраняем конфиг по умолчанию --
         saveDefaultConfig();
         // -- Инициализация менеджера торговцев --
@@ -54,18 +63,23 @@ public final class SUDORUDialoges extends JavaPlugin {
         SellShopCommand sellCmd = new SellShopCommand(this);
         Objects.requireNonNull(getCommand("sellshop")).setExecutor(sellCmd);
         Objects.requireNonNull(getCommand("sellshop")).setTabCompleter(sellCmd);
+        ShopBridgeCommand bridgeCmd = new ShopBridgeCommand(this);
+        Objects.requireNonNull(getCommand("shopbridge")).setExecutor(bridgeCmd);
+        Objects.requireNonNull(getCommand("shopbridge")).setTabCompleter(bridgeCmd);
+        Objects.requireNonNull(getCommand("villageres")).setExecutor(new VillageresCommand(this));
         // -- Слушатели --
         getServer().getPluginManager().registerEvents(new ShopMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuEditorListener(this, traderMenuGUI), this);
         getServer().getPluginManager().registerEvents(new ConfigMenuListener(this, configMenuGUI), this);
         getServer().getPluginManager().registerEvents(traderDialogMenu, this);
+        getServer().getPluginManager().registerEvents(new VillageresListener(this), this);
         // -- PlaceholderAPI (опционально) --
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TraderPlaceholder(this).register();
             getLogger().info("PlaceholderAPI найден -- плейсхолдеры зарегистрированы.");
         }
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.3  ║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.4  ║");
         getLogger().info("║  Валюта: Scoreboard Coins            ║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
@@ -130,6 +144,8 @@ public final class SUDORUDialoges extends JavaPlugin {
     }
     // --- PDC-ключ ---
     public NamespacedKey getShopPriceKey() { return shopPriceKey; }
+    public NamespacedKey getActiveTraderKey() { return activeTraderKey; }
+    public NamespacedKey getTraderNpcKey() { return traderNpcKey; }
     // --- Геттеры ---
     public TraderManager getTraderManager() { return traderManager; }
     @SuppressWarnings("unused") public TraderMenuGUI getTraderMenuGUI() { return traderMenuGUI; }

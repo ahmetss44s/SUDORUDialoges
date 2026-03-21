@@ -47,7 +47,7 @@
 | Функция | Описание |
 |---|---|
 | 💬 Нативный Dialog API | Меню — тёмный оверлей с кнопками |
-| 🚫 Без NPC | Меню открывается командой `/trader <имя>` |
+| 🤝 Datapack + Plugin | Игровое меню ведет datapack, плагин дает bridge-команды и admin-GUI |
 | 🎲 Случайный ассортимент | Каждый торговец имеет **5–8 предметов** с настраиваемыми шансами |
 | 🔁 Дубликаты | Один и тот же предмет может выпасть **2–3 раза** одновременно |
 | 🛑 Блокировка покупки | Купленный товар → серый «ПРОДАНО» (нельзя купить повторно) |
@@ -78,8 +78,12 @@
 
 | Команда | Алиасы | Описание | Право |
 |---|---|---|---|
-| `/trader` | `/trade`, `/shop` | Показать список всех торговцев | `sudoru.trader` |
-| `/trader <имя>` | `/trade <имя>`, `/shop <имя>` | Открыть диалоговое меню торговца | `sudoru.trader` |
+| `/trader` | `/trade` | Показать список traderId для bridge | `sudoru.trader` |
+| `/trader <имя>` | `/trade <имя>` | Открыть datapack-меню через bridge | `sudoru.trader` |
+| `/shopbridge open <id>` | — | Запустить datapack shop-диалог для traderId | `sudoru.trader.bridge` |
+| `/shopbridge buy <value>` | — | Bridge для покупки из datapack (`run_command`) | `sudoru.trader.bridge` |
+| `/shopbridge sell <value>` | — | Bridge для продажи из datapack (`run_command`) | `sudoru.trader.bridge` |
+| `/villageres create <id> [name...]` | `/svillager`, `/sudorunpc` | Создать NPC Villageres с привязкой traderId | `sudoru.villageres.admin` |
 
 ---
 
@@ -139,7 +143,9 @@
 | Право | По умолчанию | Описание |
 |---|---|---|
 | `sudoru.trader` | Все игроки | Использовать `/trader` |
+| `sudoru.trader.bridge` | Все игроки | Использовать `/shopbridge` |
 | `sudoru.trader.admin` | OP | `/tradermenu`, `/traderconfig` |
+| `sudoru.villageres.admin` | OP | Создавать NPC `/villageres` |
 | `sudoru.trader.reload` | OP | `/traderreload` |
 | `sudoru.trader.bypass` | OP | Покупать бесплатно (режим отладки) |
 

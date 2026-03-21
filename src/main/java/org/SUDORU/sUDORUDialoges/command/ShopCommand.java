@@ -1,7 +1,6 @@
 package org.SUDORU.sUDORUDialoges.command;
 
 import org.SUDORU.sUDORUDialoges.SUDORUDialoges;
-import org.SUDORU.sUDORUDialoges.shop.TraderShop;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,10 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * /trader <имя торговца>
+ * Теперь работает как bridge в datapack (без plugin GUI).
  */
 public class ShopCommand implements CommandExecutor, TabCompleter {
 
@@ -38,33 +38,25 @@ public class ShopCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 0) {
-            Set<String> ids = plugin.getTraderManager().getShopIds();
+            var ids = plugin.getTraderManager().getShopIds();
             if (ids.isEmpty()) {
                 player.sendMessage("§cНет настроенных торговцев. Проверь config.yml.");
                 return true;
             }
-            player.sendMessage("§8╔══════════════════════════╗");
-            player.sendMessage("§8║  §6⚙ §eДоступные торговцы§8     ║");
-            player.sendMessage("§8╚══════════════════════════╝");
-            for (String id : ids) {
-                TraderShop shop = plugin.getTraderManager().getShop(id);
-                String name = shop != null ? shop.getConfig().getDisplayName().replace("&", "§") : id;
-                player.sendMessage("  §7• §f/trader §a" + id + " §8— " + name);
-            }
+            player.sendMessage("§eДоступные traderId: §f" + ids.stream().sorted().collect(Collectors.joining(", ")));
+            player.sendMessage("§7Открой через bridge: §f/trader <id>§7 или NPC Villageres.");
             return true;
         }
 
         String traderId = args[0].toLowerCase();
-        TraderShop shop = plugin.getTraderManager().getShop(traderId);
-
-        if (shop == null) {
+        if (plugin.getTraderManager().getShop(traderId) == null) {
             player.sendMessage("§c✗ Торговец §f'" + traderId + "' §cне найден.");
             player.sendMessage("§7Используй §f/trader §7чтобы увидеть список.");
             return true;
         }
 
-        // Открываем диалоговое меню нового стиля
-        plugin.getTraderDialogMenu().open(player, shop);
+        // Меню полностью в datapack: вызываем bridge-команду.
+        player.performCommand("shopbridge open " + traderId);
         return true;
     }
 

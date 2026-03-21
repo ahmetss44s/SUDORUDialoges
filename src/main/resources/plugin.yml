@@ -1,5 +1,5 @@
 name: SUDORUDialoges
-version: '1.1.3'
+version: '1.1.4'
 main: org.SUDORU.sUDORUDialoges.SUDORUDialoges
 api-version: '1.21'
 description: "Диалоговая торговая система SUDORU"
@@ -8,9 +8,16 @@ softdepend: [PlaceholderAPI]
 
 commands:
   trader:
-    description: "Открыть меню торговца"
+    description: "Bridge: открыть datapack-меню торговца"
     usage: "/trader [имя]"
-    aliases: [trade, shop]
+    aliases: [trade]
+  shopbridge:
+    description: "Bridge-команда для связки datapack и плагина"
+    usage: "/shopbridge <open|buy|sell> ..."
+  villageres:
+    description: "Создать NPC Villageres с traderId"
+    usage: "/villageres create <traderId> [name...]"
+    aliases: [svillager, sudorunpc]
   sellshop:
     description: "Открыть меню продажи предметов (Coins)"
     usage: "/sellshop [open]"
@@ -32,9 +39,15 @@ permissions:
   sudoru.trader:
     description: "Использовать команду /trader"
     default: true
+  sudoru.trader.bridge:
+    description: "Использовать bridge-команды /shopbridge"
+    default: true
   sudoru.sellshop:
     description: "Использовать команду /sellshop (продажа предметов)"
     default: true
+  sudoru.villageres.admin:
+    description: "Создавать NPC Villageres"
+    default: op
   sudoru.trader.admin:
     description: "Управлять торговцами через /tradermenu"
     default: op

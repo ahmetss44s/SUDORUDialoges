@@ -1,5 +1,8 @@
 # Changelog
 
+## [v1.1.4] — 2026-03-21
+- Обновление версии
+
 ## [v1.1.3] — 2026-03-21
 
 ### 💰 Смена валюты: Scoreboard Coins (Breaking Change)
