@@ -18,14 +18,22 @@ import org.SUDORU.sUDORUDialoges.placeholder.TraderPlaceholder;
 import org.SUDORU.sUDORUDialoges.shop.TraderManager;
 import org.SUDORU.sUDORUDialoges.sync.DatapackSyncService;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
+import java.util.Map;
 import java.util.Objects;
+
 public final class SUDORUDialoges extends JavaPlugin {
+
+    /** Тип валюты: скорборд-objective или физический предмет в инвентаре */
+    public enum CurrencyType { SCOREBOARD, ITEM }
+
     private TraderManager traderManager;
     private TraderMenuGUI traderMenuGUI;
     private ConfigMenuGUI configMenuGUI;
@@ -83,9 +91,11 @@ public final class SUDORUDialoges extends JavaPlugin {
             getLogger().info("PlaceholderAPI найден -- плейсхолдеры зарегистрированы.");
         }
         getLogger().info("╔══════════════════════════════════════╗");
-        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.6  ║");
-        getLogger().info("║  Валюта: " + String.format("%-28s", getCurrencyName()
-                + " [" + getCurrencyObjective() + "]") + "║");
+        getLogger().info("║  SUDORU Диалоговая Торговля  v1.1.7  ║");
+        String currInfo = getCurrencyType() == CurrencyType.ITEM
+                ? getCurrencyName() + " [ITEM:" + getConfig().getString("currency.item-material","EMERALD") + "]"
+                : getCurrencyName() + " [" + getCurrencyObjective() + "]";
+        getLogger().info("║  Валюта: " + String.format("%-28s", currInfo) + "║");
         getLogger().info("║  Торговцев загружено: "
                 + String.format("%-15s", traderManager.getShopIds().size()) + "║");
         getLogger().info("╚══════════════════════════════════════╝");
@@ -95,27 +105,52 @@ public final class SUDORUDialoges extends JavaPlugin {
         if (traderManager != null) traderManager.shutdown();
         getLogger().info("SUDORUDialoges выключен.");
     }
-    // --- Валюта (Scoreboard) ---
-    /** Отображаемое название валюты (из currency.name в config.yml) */
+    // --- Валюта ---
+    /**
+     * Тип валюты: SCOREBOARD (из config) или ITEM (физический предмет).
+     */
+    public CurrencyType getCurrencyType() {
+        String type = getConfig().getString("currency.type", "SCOREBOARD");
+        try { return CurrencyType.valueOf(type.toUpperCase()); }
+        catch (IllegalArgumentException e) { return CurrencyType.SCOREBOARD; }
+    }
+    /** Отображаемое название валюты. Для ITEM — из currency.item-name, иначе currency.name */
     public String getCurrencyName() {
+        if (getCurrencyType() == CurrencyType.ITEM) {
+            return getConfig().getString("currency.item-name", "Изумруд");
+        }
         return getConfig().getString("currency.name", "Coins");
     }
     /**
-     * Название scoreboard-объекта, в котором хранится баланс игрока.
-     * Берётся из currency.objective в config.yml, по умолчанию "Coins".
+     * Название scoreboard-объекта (только для SCOREBOARD-типа).
      */
     public String getCurrencyObjective() {
         return getConfig().getString("currency.objective", "Coins");
+    }
+    /** Материал предмета-валюты (только для ITEM-типа). */
+    public Material getCurrencyItemMaterial() {
+        String matName = getConfig().getString("currency.item-material", "EMERALD");
+        try { return Material.valueOf(matName.toUpperCase()); }
+        catch (IllegalArgumentException e) {
+            getLogger().warning("Неверный материал валюты: " + matName + " — используется EMERALD");
+            return Material.EMERALD;
+        }
     }
     /** Максимум предметов за одну закупку через кнопку x? */
     public int getMaxPurchaseAmount() {
         return getConfig().getInt("shop.max-purchase-amount", 1000);
     }
     /**
-     * Возвращает баланс игрока из main scoreboard.
-     * Если objective не найден — возвращает 0.
+     * Возвращает баланс игрока.
+     * SCOREBOARD: из main scoreboard objective.
+     * ITEM: суммирует все предметы-валюты в инвентаре.
      */
     public int getCurrencyAmount(Player player) {
+        if (getCurrencyType() == CurrencyType.ITEM) {
+            Material mat = getCurrencyItemMaterial();
+            return player.getInventory().all(mat).values().stream()
+                    .mapToInt(ItemStack::getAmount).sum();
+        }
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
         Objective obj = sb.getObjective(getCurrencyObjective());
         if (obj == null) return 0;
@@ -124,9 +159,31 @@ public final class SUDORUDialoges extends JavaPlugin {
     }
     /**
      * Снимает amount валюты с игрока.
+     * SCOREBOARD: уменьшает скор. ITEM: удаляет предметы из инвентаря.
      * Возвращает false если не хватает или objective не найден.
      */
     public boolean takeCurrency(Player player, int amount) {
+        if (getCurrencyType() == CurrencyType.ITEM) {
+            Material mat = getCurrencyItemMaterial();
+            int has = getCurrencyAmount(player);
+            if (has < amount) return false;
+            int toRemove = amount;
+            for (Map.Entry<Integer, ? extends ItemStack> entry : player.getInventory().all(mat).entrySet()) {
+                ItemStack stack = entry.getValue();
+                int stackAmt = stack.getAmount();
+                if (stackAmt <= toRemove) {
+                    player.getInventory().setItem(entry.getKey(), null);
+                    toRemove -= stackAmt;
+                } else {
+                    stack.setAmount(stackAmt - toRemove);
+                    toRemove = 0;
+                }
+                if (toRemove <= 0) break;
+            }
+            player.updateInventory();
+            return true;
+        }
+        // --- SCOREBOARD ---
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
         String objName = getCurrencyObjective();
         Objective obj = sb.getObjective(objName);
@@ -143,8 +200,24 @@ public final class SUDORUDialoges extends JavaPlugin {
     }
     /**
      * Добавляет amount валюты игроку (при продаже).
+     * SCOREBOARD: увеличивает скор. ITEM: выдаёт предметы в инвентарь.
      */
     public void addCurrency(Player player, int amount) {
+        if (getCurrencyType() == CurrencyType.ITEM) {
+            Material mat = getCurrencyItemMaterial();
+            int maxStack = mat.getMaxStackSize();
+            int remaining = amount;
+            while (remaining > 0) {
+                int give = Math.min(remaining, maxStack);
+                Map<Integer, ItemStack> overflow = player.getInventory().addItem(new ItemStack(mat, give));
+                for (ItemStack drop : overflow.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                }
+                remaining -= give;
+            }
+            return;
+        }
+        // --- SCOREBOARD ---
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
         String objName = getCurrencyObjective();
         Objective obj = sb.getObjective(objName);

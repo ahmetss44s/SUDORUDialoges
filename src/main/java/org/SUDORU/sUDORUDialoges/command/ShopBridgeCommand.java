@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * РЎРІСЏР·РєР° datapack <-> plugin.
+ * Связка datapack <-> plugin.
  *
  * /shopbridge open <traderId>
  * /shopbridge buy <value>
@@ -34,31 +34,31 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("В§cР­С‚Сѓ РєРѕРјР°РЅРґСѓ РјРѕР¶РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ С‚РѕР»СЊРєРѕ РёРіСЂРѕРє.");
+            sender.sendMessage("§cЭту команду может использовать только игрок.");
             return true;
         }
         if (!player.hasPermission("sudoru.trader.bridge")) {
-            player.sendMessage("В§cвњ— РќРµС‚ РїСЂР°РІ РЅР° bridge-РєРѕРјР°РЅРґСѓ.");
+            player.sendMessage("§c✗ Нет прав на bridge-команду.");
             return true;
         }
         if (args.length < 2) {
-            player.sendMessage("В§7РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: В§f/shopbridge <open|buy|sell> ...");
+            player.sendMessage("§7Использование: §f/shopbridge <open|buy|sell> ...");
             return true;
         }
 
         String mode = args[0].toLowerCase();
         return switch (mode) {
             case "open" -> handleOpen(player, args[1].toLowerCase());
-            case "buy" -> handleTrigger(player, "ShopBuyTrigger", args[1]);
+            case "buy"  -> handleTrigger(player, "ShopBuyTrigger", args[1]);
             case "sell" -> handleTrigger(player, "ShopSellTrigger", args[1]);
             default -> {
-                player.sendMessage("В§cвњ— РќРµРёР·РІРµСЃС‚РЅС‹Р№ СЂРµР¶РёРј. РСЃРїРѕР»СЊР·СѓР№ open/buy/sell.");
+                player.sendMessage("§c✗ Неизвестный режим. Используй open/buy/sell.");
                 yield true;
             }
         };
     }
 
-        private boolean handleOpen(Player player, String traderId) {
+    private boolean handleOpen(Player player, String traderId) {
         TraderShop shop = plugin.getTraderManager().getShop(traderId);
         if (shop == null) {
             player.sendMessage("§c✗ Торговец '" + traderId + "' не найден.");
@@ -76,19 +76,60 @@ public class ShopBridgeCommand implements CommandExecutor, TabCompleter {
         try {
             value = Integer.parseInt(rawValue);
         } catch (NumberFormatException ex) {
-            player.sendMessage("В§cвњ— Р—РЅР°С‡РµРЅРёРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ С‡РёСЃР»РѕРј.");
+            player.sendMessage("§c✗ Значение должно быть числом.");
             return true;
         }
 
+        // value == 0: нажата кнопка «Выйти» — ничего не делаем
+        if (value == 0) return true;
+
+        // ── ITEM-валюта: покупку обрабатывает плагин напрямую ────────────────
+        if ("ShopBuyTrigger".equals(objectiveName)
+                && value > 0
+                && plugin.getCurrencyType() == SUDORUDialoges.CurrencyType.ITEM) {
+            handleItemCurrencyBuy(player, value);
+            return true;
+        }
+
+        // ── SCOREBOARD-валюта (или закрытие диалога value=0): через датапак ──
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         Objective objective = scoreboard.getObjective(objectiveName);
         if (objective == null) {
-            player.sendMessage("В§cвњ— Objective '" + objectiveName + "' РЅРµ РЅР°Р№РґРµРЅ. Р”Р°С‚Р°РїР°Рє Р·Р°РіСЂСѓР¶РµРЅ?");
+            player.sendMessage("§c✗ Objective '" + objectiveName + "' не найден. Датапак загружен?");
             return true;
         }
-
         objective.getScore(player.getName()).setScore(value);
         return true;
+    }
+
+    /**
+     * Обрабатывает покупку при item-валюте.
+     * Декодирует trigger: shopId = value / 100, slotIndex = value % 100.
+     * Снимает предметы из инвентаря, выдаёт товар, обновляет диалог.
+     */
+    private void handleItemCurrencyBuy(Player player, int triggerValue) {
+        int shopId    = triggerValue / 100;
+        int slotIndex = triggerValue % 100;
+
+        String traderId = plugin.getSyncService().getTraderIdByShopId(shopId);
+        if (traderId == null) {
+            player.sendMessage("§c✗ Магазин с ID=" + shopId + " не найден.");
+            return;
+        }
+
+        TraderShop shop = plugin.getTraderManager().getShop(traderId);
+        if (shop == null) {
+            player.sendMessage("§c✗ Магазин '" + traderId + "' не найден.");
+            return;
+        }
+
+        shop.tryPurchase(player, slotIndex, 1);
+
+        // Пересинкаем данные и показываем обновлённый диалог
+        plugin.getSyncService().syncShop(traderId, shop.getActiveSlots());
+        final TraderShop finalShop = shop;
+        Bukkit.getScheduler().runTaskLater(plugin,
+                () -> plugin.getSyncService().showDialog(player, finalShop), 1L);
     }
 
     @Override

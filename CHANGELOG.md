@@ -1,5 +1,16 @@
 ﻿# Changelog
 
+## [v1.1.7] — 2026-03-22
+### 🐛 Исправления
+- **КРИТИЧНЫЙ БАГ**: кнопка «Купить» в диалоге не работала — команда `run_command` в `click_event` не содержала `/`, Minecraft отправлял её в чат вместо выполнения. Исправлено в `DatapackSyncService.buildJson()`.
+- Кнопка «Выйти» (value=0) больше не пытается искать scoreboard-objective при ITEM-валюте.
+### ✨ Новое: поддержка item-валюты
+- **`currency.type: ITEM`** — магазин принимает физические предметы из инвентаря (например изумруды) вместо scoreboard Coins.
+- Новые поля в `config.yml`: `currency.type`, `currency.item-material`, `currency.item-name`.
+- `getCurrencyAmount` / `takeCurrency` / `addCurrency` роутят на инвентарь или scoreboard в зависимости от типа.
+- При `type: ITEM` покупка обрабатывается плагином напрямую (без датапака): декодирует trigger → shopId+slotIndex → `tryPurchase()` → обновляет диалог.
+- При `type: SCOREBOARD` — поведение не изменилось, датапак обрабатывает покупку как раньше.
+
 ## [v1.1.5] — 2026-03-21
 ### ✨ Новое: DatapackSyncService — Plugin как источник истины
 - **DatapackSyncService** — пушит ctiveSlots торговцев в storage api-shop:config shop_data при старте, /traderreload и открытии диалога.

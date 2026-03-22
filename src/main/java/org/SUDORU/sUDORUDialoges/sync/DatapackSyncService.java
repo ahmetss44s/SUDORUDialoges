@@ -68,6 +68,7 @@ public class DatapackSyncService {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                 "execute as " + player.getName() + " run dialog show @s " + buildJson(shop, shopId));
     }
+
     private String buildJson(TraderShop shop, int shopId) {
         String shopName = strip(shop.getConfig().getDisplayName());
         String cur = plugin.getCurrencyName();
@@ -91,16 +92,28 @@ public class DatapackSyncService {
                 .append("{\"text\":\"Кол-во: ").append(d.getItem().getAmount()).append("\",\"color\":\"gray\"},")
                 .append("{\"text\":\"\\n\"},")
                 .append("{\"text\":\"[Купить]\",\"color\":\"green\",")
-                .append("\"click_event\":{\"action\":\"run_command\",\"command\":\"shopbridge buy ")
+                .append("\"click_event\":{\"action\":\"run_command\",\"command\":\"/shopbridge buy ")
                 .append(trigger).append("\"}}]}");
         }
         body.append("]");
-        return "{\"type\":\"notice\",\"can_close_with_escape\":false,\"pause\":false,"
+        return "{\"type\":\"notice\",\"can_close_with_escape\":true,\"pause\":false,"
                 + "\"title\":\"" + shopName + "\",\"external_title\":\"" + shopName + "\","
                 + "\"action\":{\"label\":\"Выйти\",\"width\":150,"
-                + "\"action\":{\"type\":\"run_command\",\"command\":\"shopbridge buy 0\"}},"
+                + "\"action\":{\"type\":\"run_command\",\"command\":\"/shopbridge buy 0\"}},"
                 + "\"body\":" + body + "}";
     }
+
+    /**
+     * Обратный поиск: по числовому shopId возвращает traderId (строку).
+     * Нужен для обработки покупок с item-валютой в ShopBridgeCommand.
+     */
+    public String getTraderIdByShopId(int shopId) {
+        for (Map.Entry<String, Integer> entry : shopIdMap.entrySet()) {
+            if (entry.getValue() == shopId) return entry.getKey();
+        }
+        return null;
+    }
+
     private String strip(String s) {
         if (s == null) return "";
         return s.replaceAll("&#[0-9A-Fa-f]{6}", "")
