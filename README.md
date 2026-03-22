@@ -3,7 +3,7 @@
 # ⚔️ SUDORUDialoges
 ### Диалоговая Торговая Система для Minecraft 1.21.x (Paper)
 
-[![Version](https://img.shields.io/badge/Версия-1.0.7-gold?style=for-the-badge)]([https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.1.2])
+[![Version](https://img.shields.io/badge/Версия-1.1.7-gold?style=for-the-badge)](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.1.7)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.5+-brightgreen?style=for-the-badge&logo=minecraft)](https://papermc.io)
 [![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
 [![Paper](https://img.shields.io/badge/API-Paper%201.21.8-blue?style=for-the-badge)](https://papermc.io)
@@ -72,82 +72,166 @@
 
 ---
 
-## 🎮 Команды
+## 📋 Команды
 
-### 👤 Для игроков
+### 👤 Игровые команды (доступны всем)
 
-| Команда | Алиасы | Описание | Право |
+| Команда | Псевдонимы | Разрешение | Описание |
 |---|---|---|---|
-| `/trader` | `/trade` | Показать список traderId для bridge | `sudoru.trader` |
-| `/trader <имя>` | `/trade <имя>` | Открыть datapack-меню через bridge | `sudoru.trader` |
-| `/shopbridge open <id>` | — | Запустить datapack shop-диалог для traderId | `sudoru.trader.bridge` |
-| `/shopbridge buy <value>` | — | Bridge для покупки из datapack (`run_command`) | `sudoru.trader.bridge` |
-| `/shopbridge sell <value>` | — | Bridge для продажи из datapack (`run_command`) | `sudoru.trader.bridge` |
-| `/villageres create <id> [name...]` | `/svillager`, `/sudorunpc` | Создать NPC Villageres с привязкой traderId | `sudoru.villageres.admin` |
+| `/trader` | `/trade` | `sudoru.trader` | Показать список доступных торговцев |
+| `/trader <id>` | `/trade <id>` | `sudoru.trader` | Открыть диалоговое меню торговца по его ID |
+| `/sellshop` | `/sell`, `/selltrade` | `sudoru.sellshop` | Открыть меню продажи предметов за валюту |
 
 ---
 
-### 🛠️ Для администраторов
+### 🔧 Администраторские команды (только OP)
 
-| Команда | Алиасы | Описание | Право |
+| Команда | Псевдонимы | Разрешение | Описание |
 |---|---|---|---|
-| `/tradermenu` | `/trmenu`, `/shopeditor` | GUI-панель управления торговцами | `sudoru.trader.admin` |
-| `/tradermenu <id>` | — | Открыть редактор конкретного торговца | `sudoru.trader.admin` |
-| `/traderconfig` | `/tconfig`, `/shopconfig` | Полное GUI-меню всех настроек `config.yml` | `sudoru.trader.admin` |
-| `/traderconfig currency` | — | Настройки валюты | `sudoru.trader.admin` |
-| `/traderconfig trader <id>` | — | Настройки конкретного торговца | `sudoru.trader.admin` |
-| `/traderconfig items <id>` | — | Список предметов торговца | `sudoru.trader.admin` |
-| `/traderreload` | `/tradereload` | Перезагрузить `config.yml` без рестарта | `sudoru.trader.reload` |
+| `/tradermenu` | `/trmenu`, `/shopeditor` | `sudoru.trader.admin` | Открыть GUI-редактор всех торговцев |
+| `/tradermenu <id>` | | `sudoru.trader.admin` | Открыть редактор конкретного торговца |
+| `/traderconfig` | `/tconfig`, `/shopconfig` | `sudoru.trader.admin` | Открыть GUI-меню настроек (`config.yml`) |
+| `/traderconfig currency` | | `sudoru.trader.admin` | Перейти прямо на страницу настройки валюты |
+| `/traderconfig trader <id>` | | `sudoru.trader.admin` | Открыть настройки конкретного торговца |
+| `/traderconfig items <id>` | | `sudoru.trader.admin` | Открыть редактор предметов торговца |
+| `/traderreload` | `/tradereload` | `sudoru.trader.reload` | Перезагрузить `config.yml` и всех торговцев |
+| `/villageres create <id> [имя]` | `/svillager`, `/sudorunpc` | `sudoru.villageres.admin` | Заспавнить NPC-жителя, привязанного к торговцу |
 
 ---
 
-## 🛠️ GUI-меню настроек (`/traderconfig`)
+### ⚙️ Bridge-команды (внутренние, вызываются датапаком)
 
-Полное GUI для редактирования всего `config.yml` прямо в игре:
+> ⚠️ Эти команды предназначены для связки **датапак ↔ плагин**. Игроки не вызывают их вручную — они запускаются из диалога или датапака.
 
-```
-/traderconfig
-     │
-     ├─ 💎  Валюта ──────── currency.type / item-name / item-material
-     │
-     ├─ ⚒  Торговец <id>
-     │    ├─ display-name     ← ввод в чат (поддерживает &-коды и &#HEX)
-     │    ├─ description      ← ввод в чат (\n для новой строки)
-     │    ├─ icon-material    ← ввод в чат (пример: ANVIL)
-     │    ├─ refresh-seconds  ← ЛКМ −60с | ПКМ +60с | Shift ±300с
-     │    ├─ min-items        ← ЛКМ −1 | ПКМ +1
-     │    ├─ max-items        ← ЛКМ −1 | ПКМ +1
-     │    ├─ 📦 Предметы      ← открыть список предметов
-     │    ├─ ⟳  Обновить ассортимент
-     │    └─ ✗  Удалить торговца (Shift+ЛКМ)
-     │
-     └─ 📦  Предметы <id>  (пагинация)
-            ├─ ЛКМ → редактор предмета
-            ├─ ПКМ → удалить предмет
-            ├─ ✚  Добавить предмет
-            └─ ✎  Редактор предмета #N
-                   ├─ material     ← ввод в чат
-                   ├─ name         ← ввод в чат (&-коды и &#HEX)
-                   ├─ price        ← ЛКМ −1 | ПКМ +1 | Shift ±10
-                   ├─ price-range  ← ЛКМ −1 | ПКМ +1
-                   ├─ chance       ← ЛКМ −5% | ПКМ +5% | Shift ±1%
-                   ├─ amount       ← ЛКМ −1 | ПКМ +1
-                   ├─ lore         ← ввод через | (строка1|строка2)
-                   └─ potion-type  ← ввод в чат (только для зелий)
-```
-
----
-
-## 🔑 Права доступа
-
-| Право | По умолчанию | Описание |
+| Команда | Разрешение | Описание |
 |---|---|---|
-| `sudoru.trader` | Все игроки | Использовать `/trader` |
-| `sudoru.trader.bridge` | Все игроки | Использовать `/shopbridge` |
-| `sudoru.trader.admin` | OP | `/tradermenu`, `/traderconfig` |
-| `sudoru.villageres.admin` | OP | Создавать NPC `/villageres` |
-| `sudoru.trader.reload` | OP | `/traderreload` |
-| `sudoru.trader.bypass` | OP | Покупать бесплатно (режим отладки) |
+| `/shopbridge open <traderId>` | `sudoru.trader.bridge` | Синкать ассортимент и открыть диалог торговца |
+| `/shopbridge buy <число>` | `sudoru.trader.bridge` | Обработать покупку (число = ShopID×100 + slotIndex) |
+| `/shopbridge sell <число>` | `sudoru.trader.bridge` | Обработать продажу через датапак-триггер |
+
+---
+
+### 🔑 Таблица разрешений
+
+| Разрешение | По умолчанию | Описание |
+|---|---|---|
+| `sudoru.trader` | ✅ Все | Открывать меню торговцев |
+| `sudoru.sellshop` | ✅ Все | Открывать меню продажи |
+| `sudoru.trader.bridge` | ✅ Все | Выполнять bridge-команды (нужно для кнопок диалога) |
+| `sudoru.trader.admin` | 🔑 OP | Редактировать торговцев через GUI |
+| `sudoru.trader.reload` | 🔑 OP | Перезагружать конфиг |
+| `sudoru.villageres.admin` | 🔑 OP | Создавать NPC-торговцев |
+| `sudoru.trader.bypass` | ❌ Никто | Бесплатная покупка (обход проверки валюты) |
+
+---
+
+## 🖼️ Вид меню торговца
+
+Меню открывается прямо в игровом мире — тёмный оверлей с кнопками по центру экрана (нативный Dialog API Paper 1.21.5+):
+
+```
+        ┌─────────────────────────────┐
+        │   ⚒ Таинственный Кузнец     │  ← display-name торговца
+        │                             │
+        │  «Добро пожаловать.         │  ← description из config.yml
+        │   Выбирай товар...»         │
+        │                             │
+        │  [ #1 Алмазный меч — 10 💎 ] │  ← доступный товар
+        │  [ #2 Алмазная кирка — 12💎] │
+        │  [ #3 Железный меч — 4 💎  ] │
+        │  [ ✗ #4 Щит — ПРОДАНО      ] │  ← уже куплен
+        │  [ #5 Незеритовый слиток 30] │
+        │                             │
+        │         [ Выход ]           │  ← закрыть
+        └─────────────────────────────┘
+```
+
+- **Наведи курсор** на кнопку — появится тултип с лором, ценой и количеством
+- **Клик** — покупка; если недостаточно валюты — сообщение в чат
+- После покупки диалог **автоматически обновляется** (купленный слот становится серым «ПРОДАНО»)
+
+---
+
+## ✨ Особенности
+
+| Функция | Описание |
+|---|---|
+| 💬 Нативный Dialog API | Меню — тёмный оверлей с кнопками |
+| 🤝 Datapack + Plugin | Игровое меню ведет datapack, плагин дает bridge-команды и admin-GUI |
+| 🎲 Случайный ассортимент | Каждый торговец имеет **5–8 предметов** с настраиваемыми шансами |
+| 🔁 Дубликаты | Один и тот же предмет может выпасть **2–3 раза** одновременно |
+| 🛑 Блокировка покупки | Купленный товар → серый «ПРОДАНО» (нельзя купить повторно) |
+| ⏱️ Автообновление | Ассортимент обновляется автоматически через заданное время |
+| 💎 Предметная валюта | По умолчанию — **изумруды**, легко меняется в конфиге |
+| 🎨 HEX цвета | Поддержка `&#RRGGBB` и `#RRGGBB` во всём интерфейсе |
+| 🛠️ GUI-настройки | Все параметры `config.yml` редактируются прямо в игре |
+| 📊 PlaceholderAPI | Плейсхолдеры `%sudoru_*%` для других плагинов |
+| ➕ Несколько торговцев | Создавай **сколько угодно** торговцев с разными товарами |
+
+---
+
+## 📦 Установка
+
+1. Скачай последний релиз [`SUDORUDialoges-1.0.5.jar`](https://github.com/ahmetss44s/SUDORUDialoges/releases/tag/v1.0.5) из [Releases](../../releases)
+2. Скопируй в папку `plugins/` сервера
+3. Запусти / перезапусти сервер
+4. Конфиг создастся автоматически: `plugins/SUDORUDialoges/config.yml`
+
+> **Требования:** Paper **1.21.5+** (Dialog API), Java 21+
+> **Опционально:** [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) для плейсхолдеров
+
+---
+
+## 📋 Команды
+
+### 👤 Игровые команды (доступны всем)
+
+| Команда | Псевдонимы | Разрешение | Описание |
+|---|---|---|---|
+| `/trader` | `/trade` | `sudoru.trader` | Показать список доступных торговцев |
+| `/trader <id>` | `/trade <id>` | `sudoru.trader` | Открыть диалоговое меню торговца по его ID |
+| `/sellshop` | `/sell`, `/selltrade` | `sudoru.sellshop` | Открыть меню продажи предметов за валюту |
+
+---
+
+### 🔧 Администраторские команды (только OP)
+
+| Команда | Псевдонимы | Разрешение | Описание |
+|---|---|---|---|
+| `/tradermenu` | `/trmenu`, `/shopeditor` | `sudoru.trader.admin` | Открыть GUI-редактор всех торговцев |
+| `/tradermenu <id>` | | `sudoru.trader.admin` | Открыть редактор конкретного торговца |
+| `/traderconfig` | `/tconfig`, `/shopconfig` | `sudoru.trader.admin` | Открыть GUI-меню настроек (`config.yml`) |
+| `/traderconfig currency` | | `sudoru.trader.admin` | Перейти прямо на страницу настройки валюты |
+| `/traderconfig trader <id>` | | `sudoru.trader.admin` | Открыть настройки конкретного торговца |
+| `/traderconfig items <id>` | | `sudoru.trader.admin` | Открыть редактор предметов торговца |
+| `/traderreload` | `/tradereload` | `sudoru.trader.reload` | Перезагрузить `config.yml` и всех торговцев |
+| `/villageres create <id> [имя]` | `/svillager`, `/sudorunpc` | `sudoru.villageres.admin` | Заспавнить NPC-жителя, привязанного к торговцу |
+
+---
+
+### ⚙️ Bridge-команды (внутренние, вызываются датапаком)
+
+> ⚠️ Эти команды предназначены для связки **датапак ↔ плагин**. Игроки не вызывают их вручную — они запускаются из диалога или датапака.
+
+| Команда | Разрешение | Описание |
+|---|---|---|
+| `/shopbridge open <traderId>` | `sudoru.trader.bridge` | Синкать ассортимент и открыть диалог торговца |
+| `/shopbridge buy <число>` | `sudoru.trader.bridge` | Обработать покупку (число = ShopID×100 + slotIndex) |
+| `/shopbridge sell <число>` | `sudoru.trader.bridge` | Обработать продажу через датапак-триггер |
+
+---
+
+### 🔑 Таблица разрешений
+
+| Разрешение | По умолчанию | Описание |
+|---|---|---|
+| `sudoru.trader` | ✅ Все | Открывать меню торговцев |
+| `sudoru.sellshop` | ✅ Все | Открывать меню продажи |
+| `sudoru.trader.bridge` | ✅ Все | Выполнять bridge-команды (нужно для кнопок диалога) |
+| `sudoru.trader.admin` | 🔑 OP | Редактировать торговцев через GUI |
+| `sudoru.trader.reload` | 🔑 OP | Перезагружать конфиг |
+| `sudoru.villageres.admin` | 🔑 OP | Создавать NPC-торговцев |
+| `sudoru.trader.bypass` | ❌ Никто | Бесплатная покупка (обход проверки валюты) |
 
 ---
 
